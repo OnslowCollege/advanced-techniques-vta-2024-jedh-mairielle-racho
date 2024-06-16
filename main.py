@@ -1,13 +1,14 @@
 """
 Main.
 
-Created by: NAME
-Date: DATE
+Created by: Jedh
+Date: 2024-06-17
 """
 
-# Enter your code here
-name: str = input("Enter your name: ")
-if name:
-    print(f"Hello, {name}!")
-else:
-    print("Error getting name.")
+# run main
+class Main:
+    """Main program."""
+
+    def __init__(self) -> None:
+        """Initialise."""
+        pass
