@@ -14,6 +14,7 @@ class Main:
     def __init__(self) -> None:
         """Initialise."""
         pygame.init()
+        self.clock = pygame.time.Clock()  # to define FPS
         self.run: bool = True
 
         # create display
@@ -24,7 +25,11 @@ class Main:
 
     def event_handler(self) -> None:
         """Handle user-interaction events."""
+        # update clock ticks and display
+        self.clock.tick(FPS)
         pygame.display.update()
+
+        # event handler
         for event in pygame.event.get():
             # if user quits program window
             if event.type == pygame.QUIT:
