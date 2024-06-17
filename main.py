@@ -43,7 +43,7 @@ class Main:
             self.event_handler()
 
 
-if __name__ == "__main__"
+if __name__ == "__main__":
     # run program
     main = Main()
     main.run()
