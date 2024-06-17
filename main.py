@@ -34,5 +34,10 @@ class Main:
     def run(self) -> None:
         while self.run == True:
             self.display_surf.fill(WHITE)
-
             event_handler()
+
+
+if "__name__" == "__main__":
+    # run program
+    main = Main()
+    main.run()
