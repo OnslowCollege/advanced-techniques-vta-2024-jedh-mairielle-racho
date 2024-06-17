@@ -17,9 +17,10 @@ class Main:
         self.run: bool = True
 
         # create display
+        pygame.display.set_caption("Blackjack")  # name window
         self.screen = pygame.display.setmode((SCREEN_W, SCREEN_H),
         pygame.RESIZABLE)
-        pygame.display.set_caption("Blackjack")  # name window
+        self.display_surf = pygame.display.get_surface()
 
     def event_handler(self) -> None:
         """Handle user-interaction events."""
@@ -32,4 +33,6 @@ class Main:
 
     def run(self) -> None:
         while self.run == True:
-            
+            self.display_surf.fill(WHITE)
+
+            event_handler()
