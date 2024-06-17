@@ -19,7 +19,7 @@ class Main:
         self.run_display: bool = True
 
         # create display
-        self.screen = pygame.display.set_mode((480, 800))
+        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
         pygame.display.set_caption("Blackjack")  # name window
         self.display_surf = pygame.display.get_surface()
 
@@ -43,7 +43,7 @@ class Main:
             self.event_handler()
 
 
-if "__name__" == "__main__":
+if __name__ == "__main__"
     # run program
     main = Main()
     main.run()
