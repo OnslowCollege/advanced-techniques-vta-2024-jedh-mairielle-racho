@@ -19,7 +19,9 @@ class Main:
         self.run_display: bool = True
 
         # create display
-        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        self.screen = pygame.display.set_mode(
+            (SCREEN_W, SCREEN_H), pygame.RESIZABLE
+        )
         pygame.display.set_caption("Blackjack")  # name window
         self.display_surf = pygame.display.get_surface()
 
