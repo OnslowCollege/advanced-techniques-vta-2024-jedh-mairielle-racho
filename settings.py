@@ -2,8 +2,8 @@
 import pygame
 
 # screen
-SCREEN_W: int = 500
-SCREEN_H: int = 500
+SCREEN_W: int = 650
+SCREEN_H: int = 600
 
 # framerate
 FPS: int = 60
