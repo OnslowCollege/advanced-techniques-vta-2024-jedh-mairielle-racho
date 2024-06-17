@@ -11,4 +11,18 @@ class Screen:
 
     def __init__(self) -> None:
         """Initialise."""
-        self.
+        self.run: bool = True
+
+        # create display
+        self.screen = pygame.display.setmode((SCREEN_W, SCREEN_H),
+        pygame.RESIZABLE)
+        pygame.display.set_caption("Blackjack")  # name window
+
+    def event_handler(self) -> None:
+        """Handle user-interaction events."""
+        pygame.display.update()
+        for event in pygame.event.get():
+            # if user quits program window
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
