@@ -19,7 +19,7 @@ class MainMenu(Screen):
 
         # title
         self.title = p_font(100).render("ONSLOW", True, D2_GREEN)
-        self.sub = p_font(30).render("The Blackjack", True, D2_GREEN)
+        self.sub = s_font(30).render("The Blackjack", True, D2_GREEN)
 
         # buttons
         self.start_b = s_font(30).render("Start game", True, WHITE)
@@ -44,6 +44,33 @@ class MainMenu(Screen):
         self.display_surf.blit(self.sub, sub_rect)
 
         # buttons
+        self.s_button = Button(
+            "Start game",
+            30,
+            D2_GREEN,
+            WHITE,
+            WHITE,
+            D2_GREEN,
+            220,
+            50,
+            bg_rect.centerx - 80,
+            bg_rect.centery + 60,
+        )
+        self.start = self.s_button.show_button(self.display_surf)
+
+        self.t_button = Button(
+            "How to play",
+            30,
+            D2_GREEN,
+            WHITE,
+            WHITE,
+            D2_GREEN,
+            220,
+            50,
+            bg_rect.centerx - 80,
+            bg_rect.centery + 130,
+        )
+        self.tutorial = self.t_button.show_button(self.display_surf)
 
     # run screen
     def run(self) -> None:
@@ -51,5 +78,10 @@ class MainMenu(Screen):
         while self.run_display:
             # create display
             self.create_display()
+
+            if self.start:
+                print("Start!")
+            if self.tutorial:
+                print("How to play!")
 
             self.event_handler()
