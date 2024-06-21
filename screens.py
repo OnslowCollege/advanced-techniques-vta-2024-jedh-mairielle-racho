@@ -50,10 +50,10 @@ class MainMenu(Screen):
             D2_GREEN,
             WHITE,
             WHITE,
-            D2_GREEN,
+            RED,
             220,
             50,
-            bg_rect.centerx - 80,
+            bg_rect.centerx - 110,
             bg_rect.centery + 60,
         )
         self.start = self.s_button.show_button(self.display_surf)
@@ -64,10 +64,10 @@ class MainMenu(Screen):
             D2_GREEN,
             WHITE,
             WHITE,
-            D2_GREEN,
+            RED,
             220,
             50,
-            bg_rect.centerx - 80,
+            bg_rect.centerx - 110,
             bg_rect.centery + 130,
         )
         self.tutorial = self.t_button.show_button(self.display_surf)

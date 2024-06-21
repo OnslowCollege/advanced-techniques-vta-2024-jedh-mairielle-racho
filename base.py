@@ -90,7 +90,7 @@ class Button:
         self.text = s_font(size).render(text, True, t_colour)
         self.h_text = s_font(size).render(text, True, t_h_colour)
         self.t_rect = self.text.get_rect(
-            center=(self.b_rect.centerx, self.b_rect.centery)
+            center=(self.b_rect.centerx, self.b_rect.centery - 3)
         )
 
     # show button

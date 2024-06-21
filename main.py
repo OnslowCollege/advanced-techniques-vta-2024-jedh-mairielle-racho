@@ -5,7 +5,6 @@ Created by: Jedh
 Date: 2024-06-17
 """
 import pygame
-import sys
 from screens import *
 from settings import*
 
