@@ -2,51 +2,65 @@
 
 import socket
 import pickle
+import settings as settings
+from game import Game
 from _thread import *
 
-server = "10.203.11.10"
-port = 555
 
+# create the socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
-    s.bind((server, port))
+    s.bind((settings.server, settings.port))
 except socket.error as e:
     str(e)
 
-s.listen(2)
+s.listen()  # get connections
 print("Waiting for a connection, Server Started")
 
-connected = set()
-games = {}
-id_count = 0
+games: dict[int, Game] = {}  # store games
+id_count: int = 0  # store user count
 
 
 # thread function
-def threaded(connection, player, id_count, game_id):
-    """Set up game data connection."""
-    connection.send(str.encode(str(player)))
+def threaded(connection, player_no: int, id_count: int, game_id: int) -> None:
+    """
+    Set up game data connection.
 
-    reply = ""
+    Parameters
+    ----------
+        connection:
+        player_no: which player user is
+        id_count: the number of users there are
+        game_id: the number of games per 2 users
+
+    """
+    connection.send(str.encode(str(player_no)))
+
+    reply: None | Game = None
     while True:
         try:
-            data = connection.recv(2048 * 2).decode()
+            data = connection.recv(2048 * 2).decode()  # receive data
 
+            # check if game still exists
             if game_id in games:
                 game = games[game_id]
 
                 if not data:
                     break
+
+                # check data received
                 else:
                     # reset game once game has finished
                     if data == "reset":
-                        pass
-                    # get the game if users wish to start a game
+                        game.reset()
+                    # send move data
                     elif data != "get":
-                        pass
+                        game.play(player_no, data)
 
-                    # send game data
-                    connection.sendall(pickle.dumps(game))
+                    reply = game
+                    # send response
+                    connection.sendall(pickle.dumps(reply))
 
             else:
                 break
@@ -56,9 +70,9 @@ def threaded(connection, player, id_count, game_id):
         # connection has been lost, so disconnect both
         print("Lost connection")
         try:
-            del games[game_id]
+            del games[game_id]  # remove disconnected game
             print("Closing game", game_id)
-        except:
+        except KeyError:
             pass
         id_count -= 1
         connection.close()
@@ -70,12 +84,16 @@ while True:
     print("Connection to:", addr)
 
     id_count += 1  # store user count
-    player = 0
-    game_id = (id_count - 1) // 2  # create games for every 2 players
+    player = 0  # establish which 'player' user is (i.e. 0 or 1)
+
+    # create games for every 2 players
+    game_id = (id_count - 1) // 2
     if id_count % 2 == 1:
+        # create a new game
         games[game_id] = Game(game_id)
         print("Creating a new game...")
     else:
+        # send 2nd player to the game
         games[game_id].ready = True
         player = 1
 

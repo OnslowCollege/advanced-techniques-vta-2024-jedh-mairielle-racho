@@ -15,10 +15,11 @@ class Network:
         self.server = "10.203.11.10"
         self.port = 5555
         self.addr = (self.server, self.port)
+        self.player_no = self.connect()
 
     # connect users
     def connect(self):
-        """Connect users to client."""
+        """Get player number."""
         try:
             self.client.connect(self.addr)
             return self.client.recv(2048).decode()
@@ -28,7 +29,7 @@ class Network:
     def send(self, data):
         """Send information between users."""
         try:
-            self.client.send(str.encode(data))
-            return pickle.loads(self.client.recv(2048 * 2))
+            self.client.send(str.encode(data))  # send data
+            return pickle.loads(self.client.recv(2048 * 2))  # receive obj data
         except socket.error as e:
             print(e)

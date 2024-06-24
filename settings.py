@@ -2,6 +2,11 @@
 
 import pygame
 
+# client settings
+server: str = "10.203.11.10"
+port: int = 123
+
+
 # name
 NAME: str = "Onslow the Blackjack"
 
