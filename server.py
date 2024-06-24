@@ -1,8 +1,8 @@
 """Create the server."""
 
 import socket
-from _thread import *
 import pickle
+from _thread import *
 
 server = "10.203.11.10"
 port = 555
@@ -23,7 +23,7 @@ id_count = 0
 
 
 # thread function
-def threaded(connection, player, game_id):
+def threaded(connection, player, id_count, game_id):
     """Set up game data connection."""
     connection.send(str.encode(str(player)))
 
@@ -80,4 +80,4 @@ while True:
         player = 1
 
     # start a new thread connection
-    start_new_thread(threaded, (connection, player, game_id))
+    start_new_thread(threaded, (connection, player, id_count, game_id))
