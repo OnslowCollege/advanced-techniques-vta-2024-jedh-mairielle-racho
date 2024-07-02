@@ -1,5 +1,5 @@
 """Create the network to connect players together."""
-
+import settings as settings
 import socket
 import pickle
 
@@ -12,8 +12,8 @@ class Network:
     def __init__(self):
         """Initialise the network."""
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "10.203.11.10"
-        self.port = 5555
+        self.server = settings.SERVER
+        self.port = settings.PORT
         self.addr = (self.server, self.port)
         self.player_no = self.connect()
 
@@ -23,7 +23,7 @@ class Network:
         try:
             self.client.connect(self.addr)
             return self.client.recv(2048).decode()
-        except:
+        except socket.error:
             pass
 
     def send(self, data):

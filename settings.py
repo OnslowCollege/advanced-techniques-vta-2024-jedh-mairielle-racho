@@ -3,9 +3,10 @@
 import pygame
 
 # client settings
-server: str = "10.203.11.10"
-port: int = 123
-
+# school ip: 10.203.2.120
+# home ip: 192.168.68.153
+SERVER: str = "192.168.68.153"
+PORT: int = 1234
 
 # name
 NAME: str = "Onslow the Blackjack"
