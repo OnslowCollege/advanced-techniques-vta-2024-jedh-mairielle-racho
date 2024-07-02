@@ -278,7 +278,10 @@ class Start(Screen):
                     settings.RED if i == self.player_no else settings.D1_GREEN
                 ][0]
                 c_rect: pygame.Rect = pygame.Rect(
-                    (80 + 50 * j), (280 + 5 * j - 240 * spacing), 120, 200
+                    (80 + 50 * j),
+                    (280 + 5 * j - 240 * spacing),
+                    120,
+                    200,
                 )
                 # draw card
                 pygame.draw.rect(self.display_surf, colour, c_rect, 0, 4)

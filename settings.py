@@ -5,7 +5,7 @@ import pygame
 # client settings
 # school ip: 10.203.2.120
 # home ip: 192.168.68.153
-SERVER: str = "192.168.68.153"
+SERVER: str = "10.203.2.120"
 PORT: int = 1234
 
 # name
