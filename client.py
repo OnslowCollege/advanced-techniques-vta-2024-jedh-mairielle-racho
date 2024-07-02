@@ -28,8 +28,8 @@ class Button:
         b_h_colour: str,
         b_width: int,
         b_height: int,
-        b_x: int,
-        b_y: int,
+        b_x: float,
+        b_y: float,
     ) -> None:
         """
         Initialise the button appearance.
@@ -267,6 +267,25 @@ class Start(Screen):
             center=(300, self.c_loss_rect.bottom + 30)
         )
 
+        # create hit/stand buttons
+        b_texts: list[str] = ["Stand", "Hit"]
+        self.buttons: list[Button] = []
+        for b_index, b_text in enumerate(b_texts):
+            self.buttons.append(
+                Button(
+                    b_text,
+                    40,
+                    settings.WHITE,
+                    settings.WHITE,
+                    settings.D2_GREEN,
+                    settings.RED,
+                    200,
+                    70,
+                    80 + 240 * b_index,
+                    540,
+                )
+            )
+
     # draw cards
     def draw_cards(self) -> None:
         """Draw the cards of the players."""
@@ -275,7 +294,9 @@ class Start(Screen):
             spacing: int = [0 if i == self.player_no else 1][0]
             for j, symbol in enumerate(self.game.players[i].hand):
                 colour: str = [
-                    settings.RED if i == self.player_no else settings.D1_GREEN
+                    settings.WHITE
+                    if i == self.player_no
+                    else settings.D1_GREEN
                 ][0]
                 c_rect: pygame.Rect = pygame.Rect(
                     (80 + 50 * j), (280 + 5 * j - 240 * spacing), 120, 200
@@ -285,13 +306,34 @@ class Start(Screen):
                 pygame.draw.rect(
                     self.display_surf, settings.D1_GREEN, c_rect, 3, 4
                 )
-                symbol_text = settings.p_font(30).render(
-                    symbol, True, settings.D1_GREEN
-                )
-                symbol_rect = symbol_text.get_rect(
-                    topleft=(c_rect.left + 10, c_rect.top + 1)
-                )
-                self.display_surf.blit(symbol_text, symbol_rect)
+                if i == self.player_no:
+                    symbol_text = settings.p_font(30).render(
+                        symbol, True, settings.D1_GREEN
+                    )
+                    self.display_surf.blit(
+                        symbol_text, (c_rect.left + 10, c_rect.top + 1)
+                    )
+                    self.display_surf.blit(
+                        symbol_text, (c_rect.left + 10, c_rect.bottom - 40)
+                    )
+
+    # draw buttons when user's turn
+    def draw_buttons(self) -> None:
+        """Draw buttons when user's turn."""
+        # create total text
+        t_text = settings.s_font(30).render(
+            f"Total: {self.player.total()}", True, settings.D2_GREEN
+        )
+
+        # draw buttons on user's turn
+        if self.game.players[self.player_no].turn:
+            self.display_surf.blit(t_text, (80, 500))  # show total
+            for button in self.buttons:
+                button.show_button(self.display_surf)
+
+        # tell user they are waiting
+        else:
+            pass
 
     # run game
     def run(self) -> None:
@@ -303,11 +345,12 @@ class Start(Screen):
             # attempt to connect 2 clients
             try:
                 self.game = self.network.send("get")  # get their game
+                self.player = self.game.players[self.player_no]
 
                 # if connection between two users has been established, play
                 if self.game.ready:
-                    # draw player cards
-                    self.draw_cards()
+                    self.draw_cards()  # draw cards of both players
+                    self.draw_buttons()  # draw buttons when user turn
 
                 # p1 waiting for another user (p2)
                 else:

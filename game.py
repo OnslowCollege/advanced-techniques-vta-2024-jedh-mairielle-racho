@@ -10,13 +10,34 @@ class Player:
     def __init__(self) -> None:
         """Initialise the player."""
         # store player stats
-        self.ready: bool = False  # whether player ready to start game
-        self.turn: bool = False  # whether it is player's turn
+        self.turn: bool = True  # whether it is player's turn
         self.wins: int = 0
         self.ties: int = 0
 
         # store player game data
         self.hand: list[str] = []
+
+    # count hand total
+    def total(self) -> int:
+        """Total up the player's hand."""
+        total: int = 0
+        for card in self.hand:
+            # user has face card or 10 (except ace)
+            if card in ["10", "J", "Q", "K", "A"]:
+                total += 10
+            # user has ace (automatically count best choice)
+            elif card == "A":
+                # ace == 1 if otherwise makes total >21
+                if (total + 10) > 21:
+                    total += 1
+                # ace == 10
+                else:
+                    total += 10
+
+            # number card is counted
+            else:
+                total += int(card)
+        return total
 
 
 # game instance stores all game data
