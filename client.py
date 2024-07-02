@@ -249,10 +249,29 @@ class Start(Screen):
         self.player_no: int = int(self.network.player_no)
         print("You are player", self.player_no + 1)
 
+        # waiting for connection text
+        self.c_text = settings.p_font(50).render(
+            "Waiting for connection...", True, settings.D2_GREEN
+        )
+        self.c_rect = self.c_text.get_rect(center=(300, 325))
+
+        # connection lost text
+        self.c_loss_text = settings.p_font(50).render(
+            "Connection lost...", True, settings.D2_GREEN
+        )
+        self.c_loss_rect = self.c_loss_text.get_rect(center=(300, 325))
+        self.c_loss_subtext = settings.s_font(30).render(
+            "Returning to main menu", True, settings.D2_GREEN
+        )
+        self.l_subtext_rect = self.c_loss_subtext.get_rect(
+            center=(300, self.c_loss_rect.bottom + 30)
+        )
+
     # draw cards
     def draw_cards(self) -> None:
         """Draw the cards of the players."""
-        for i in range(2):
+        for i in range(2):  # for both players
+            # front hand is user's
             spacing: int = [0 if i == self.player_no else 1][0]
             for j, symbol in enumerate(self.game.players[i].hand):
                 colour: str = [
@@ -277,25 +296,37 @@ class Start(Screen):
     # run game
     def run(self) -> None:
         """Run game."""
-        # self.game = Game(0)
-
         while self.run_display:
-            # connect clients
+            # draw GUI background
+            self.display_surf.fill(settings.WHITE)
+
+            # attempt to connect 2 clients
             try:
-                self.game = self.network.send("get")
+                self.game = self.network.send("get")  # get their game
+
+                # if connection between two users has been established, play
+                if self.game.ready:
+                    # draw player cards
+                    self.draw_cards()
+
+                # p1 waiting for another user (p2)
+                else:
+                    self.display_surf.blit(self.c_text, self.c_rect)
+
             except:
+                # other client has exited (e.g. other player lost connection)
+                # so stop game and tell still connected user
+                self.display_surf.blit(self.c_loss_text, self.c_loss_rect)
+                self.display_surf.blit(
+                    self.c_loss_subtext, self.l_subtext_rect
+                )
+                pygame.display.update()
+                pygame.time.wait(2000)  # wait 2s before main menu
                 self.run_display = False
-                print("Couldn't get game")
                 MainMenu().run()
 
             # program actions
             self.event_handler()
-
-            # ui
-            self.display_surf.fill(settings.WHITE)
-            # draw player cards
-            self.game.deal_card(0)
-            self.draw_cards()
 
 
 if __name__ == "__main__":
