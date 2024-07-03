@@ -228,7 +228,7 @@ class MainMenu(Screen):
 
             if self.start:
                 self.run_display = False
-                Start().run()
+                StartGame().run()
             if self.tutorial:
                 print("How to play!")
 
@@ -236,7 +236,7 @@ class MainMenu(Screen):
 
 
 # run start
-class Start(Screen):
+class StartGame(Screen):
     """Start game."""
 
     # initiator method
@@ -261,37 +261,76 @@ class Start(Screen):
         )
         self.c_loss_rect = self.c_loss_text.get_rect(center=(300, 325))
         self.c_loss_subtext = settings.s_font(30).render(
-            "Returning to main menu", True, settings.D2_GREEN
+            "Returning to main menu", True, settings.D1_GREEN
         )
         self.l_subtext_rect = self.c_loss_subtext.get_rect(
             center=(300, self.c_loss_rect.bottom + 30)
         )
+
+        # hit/stand buttons
+        self.buttons: list[Button] = []
+        b_texts: list[str] = ["Hit", "Stand"]
+        for i, b_text in enumerate(b_texts):
+            self.buttons.append(
+                Button(
+                    b_text,
+                    40,
+                    settings.WHITE,
+                    settings.WHITE,
+                    settings.D2_GREEN,
+                    settings.RED,
+                    200,
+                    70,
+                    85 + 230 * i,
+                    510,
+                )
+            )
 
     # draw cards
     def draw_cards(self) -> None:
         """Draw the cards of the players."""
         for i in range(2):  # for both players
             # front hand is user's
-            spacing: int = [0 if i == self.player_no else 1][0]
+            colour: str = [
+                settings.WHITE if i == self.player_no else settings.D1_GREEN
+            ][0]
+            o_colour: str = [
+                settings.D1_GREEN if i == self.player_no else settings.WHITE
+            ][0]
             for j, symbol in enumerate(self.game.players[i].hand):
-                colour: str = [
-                    settings.RED if i == self.player_no else settings.D1_GREEN
-                ][0]
-                c_rect: pygame.Rect = pygame.Rect(
-                    (80 + 50 * j), (280 + 5 * j - 240 * spacing), 120, 200
-                )
+                if i == self.player_no:
+                    c_rect: pygame.Rect = pygame.Rect(
+                        (80 + 50 * j), (250 + 5 * j), 120, 200
+                    )
+                else:
+                    c_rect = pygame.Rect(
+                        (400 - 50 * j), (50 - 5 * j), 120, 200
+                    )
                 # draw card
                 pygame.draw.rect(self.display_surf, colour, c_rect, 0, 4)
-                pygame.draw.rect(
-                    self.display_surf, settings.D1_GREEN, c_rect, 3, 4
-                )
-                symbol_text = settings.p_font(30).render(
-                    symbol, True, settings.D1_GREEN
-                )
-                symbol_rect = symbol_text.get_rect(
-                    topleft=(c_rect.left + 10, c_rect.top + 1)
-                )
-                self.display_surf.blit(symbol_text, symbol_rect)
+                pygame.draw.rect(self.display_surf, o_colour, c_rect, 3, 4)
+                # draw card symbol for user
+                if i == self.player_no:
+                    symbol_text = settings.p_font(30).render(
+                        symbol, True, settings.D2_GREEN
+                    )
+                    self.display_surf.blit(
+                        symbol_text, (c_rect.left + 10, c_rect.top + 1)
+                    )
+                    self.display_surf.blit(
+                        symbol_text, (c_rect.left + 10, c_rect.bottom - 41)
+                    )
+
+    # draw hit/stand buttons if user turn
+    def draw_buttons(self) -> None:
+        """Draw buttons when user's turn."""
+        total_text = settings.p_font(40).render(
+            f"Total: {self.player.total()}", True, settings.D2_GREEN
+        )
+        if self.player.turn:
+            for button in self.buttons:
+                button.show_button(self.display_surf)  # show buttons
+                self.display_surf.blit(total_text, (90, 190))  # show total
 
     # run game
     def run(self) -> None:
@@ -303,11 +342,12 @@ class Start(Screen):
             # attempt to connect 2 clients
             try:
                 self.game = self.network.send("get")  # get their game
+                self.player = self.game.players[self.player_no]
 
                 # if connection between two users has been established, play
                 if self.game.ready:
-                    # draw player cards
-                    self.draw_cards()
+                    self.draw_cards()  # draw players' cards
+                    self.draw_buttons()  # draw buttons if user's turn
 
                 # p1 waiting for another user (p2)
                 else:
