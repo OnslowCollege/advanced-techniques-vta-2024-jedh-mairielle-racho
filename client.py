@@ -122,13 +122,15 @@ class Screen:
         self.display_surf = pygame.display.get_surface()
         self.w, self.h = pygame.display.get_surface().get_size()
 
+    # quick menu
+    def pop_menu(self) -> None:
+        """Show quick menu when user presses ESC."""
+
+    # handle events
     def event_handler(self) -> None:
         """Handle user-interaction events."""
         # get center
         self.w, self.h = pygame.display.get_surface().get_size()
-        # update clock ticks and display
-        self.clock.tick(settings.FPS)
-        pygame.display.update()
 
         # event handler
         for event in pygame.event.get():
@@ -136,6 +138,10 @@ class Screen:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+        # update clock ticks and display
+        self.clock.tick(settings.FPS)
+        pygame.display.update()
 
     def run(self) -> None:
         """Run program."""
@@ -266,6 +272,74 @@ class Start(Screen):
         self.l_subtext_rect = self.c_loss_subtext.get_rect(
             center=(300, self.c_loss_rect.bottom + 30)
         )
+
+        # create quick menu
+        self.quick_menu: bool = False
+        self.q_rect: pygame.Rect = pygame.Rect(140, 240, 320, 200)
+        self.mm_button: Button = Button(
+            "Main Menu",
+            30,
+            settings.D2_GREEN,
+            settings.WHITE,
+            settings.WHITE,
+            settings.RED,
+            180,
+            50,
+            210,
+            275,
+        )
+        self.b_button: Button = Button(
+            "Back",
+            30,
+            settings.D2_GREEN,
+            settings.WHITE,
+            settings.WHITE,
+            settings.RED,
+            180,
+            50,
+            210,
+            355,
+        )
+
+    # handle events (remastered)
+    def event_handler(self) -> None:
+        """Handle user-interaction events."""
+        # get center
+        self.w, self.h = pygame.display.get_surface().get_size()
+
+        # event handler
+        for event in pygame.event.get():
+            # if user quits program window
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # if user presses ESC to access quick menu
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                # user has already pressed ESC, so exit quick menu
+                if self.quick_menu:
+                    self.quick_menu = False
+
+                # bring up quick menu on ESC
+                else:
+                    self.quick_menu = True
+
+        # draw quick menu
+        if self.quick_menu:
+            pygame.draw.rect(
+                self.display_surf, settings.D2_GREEN, self.q_rect, 0, 4
+            )
+            # draw main menu button
+            main_menu: bool = self.mm_button.show_button(self.display_surf)
+            if main_menu:
+                print("Yes!")
+
+            # draw back button
+            back: bool = self.b_button.show_button(self.display_surf)
+
+        # update clock ticks and display
+        self.clock.tick(settings.FPS)
+        pygame.display.update()
 
     # draw cards
     def draw_cards(self) -> None:
