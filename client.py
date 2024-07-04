@@ -251,17 +251,17 @@ class StartGame(Screen):
 
         # waiting for connection text
         self.c_text = settings.p_font(50).render(
-            "Waiting for connection...", True, settings.D2_GREEN
+            "Waiting for connection...", True, settings.WHITE
         )
         self.c_rect = self.c_text.get_rect(center=(300, 325))
 
         # connection lost text
         self.c_loss_text = settings.p_font(50).render(
-            "Connection lost...", True, settings.D2_GREEN
+            "Connection lost...", True, settings.WHITE
         )
         self.c_loss_rect = self.c_loss_text.get_rect(center=(300, 325))
         self.c_loss_subtext = settings.s_font(30).render(
-            "Returning to main menu", True, settings.D1_GREEN
+            "Returning to main menu", True, settings.WHITE
         )
         self.l_subtext_rect = self.c_loss_subtext.get_rect(
             center=(300, self.c_loss_rect.bottom + 30)
@@ -275,9 +275,9 @@ class StartGame(Screen):
                 Button(
                     b_text,
                     40,
-                    settings.WHITE,
-                    settings.WHITE,
                     settings.D2_GREEN,
+                    settings.WHITE,
+                    settings.WHITE,
                     settings.RED,
                     200,
                     70,
@@ -292,11 +292,9 @@ class StartGame(Screen):
         for i in range(2):  # for both players
             # front hand is user's
             colour: str = [
-                settings.WHITE if i == self.player_no else settings.D1_GREEN
+                settings.WHITE if i == self.player_no else settings.D2_GREEN
             ][0]
-            o_colour: str = [
-                settings.D1_GREEN if i == self.player_no else settings.WHITE
-            ][0]
+            o_colour: str = settings.D1_GREEN
             for j, symbol in enumerate(self.game.players[i].hand):
                 if i == self.player_no:
                     c_rect: pygame.Rect = pygame.Rect(
@@ -325,7 +323,7 @@ class StartGame(Screen):
     def draw_buttons(self) -> None:
         """Draw buttons when user's turn."""
         total_text = settings.p_font(40).render(
-            f"Total: {self.player.total()}", True, settings.D2_GREEN
+            f"Total: {self.player.total()}", True, settings.WHITE
         )
         if self.player.turn:
             for button in self.buttons:
@@ -337,7 +335,7 @@ class StartGame(Screen):
         """Run game."""
         while self.run_display:
             # draw GUI background
-            self.display_surf.fill(settings.WHITE)
+            self.display_surf.fill(settings.D1_GREEN)
 
             # attempt to connect 2 clients
             try:
