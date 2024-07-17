@@ -266,7 +266,6 @@ class Blackjack(Screen):
         # set up the connected socket
         self.network: Network = Network()
         self.player_no: int = int(self.network.player_no)
-        print(self.player_no)
 
         # waiting for connection screen
         self.c_text: pygame.Surface = s.p_font(50).render(
@@ -292,6 +291,14 @@ class Blackjack(Screen):
             self.card_faces.append(
                 pygame.image.load(f"assets/images/cards/{i + 1}.png")
             )
+
+        # waiting for other player turn
+        self.w_text: pygame.Surface = s.s_font(80).render(
+            "Waiting...", True, s.D1_GREEN
+        )
+        self.w_rect: pygame.Rect = self.w_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+        )
 
     # draw cards of players onto screen
     def display_cards(self) -> None:
@@ -342,21 +349,32 @@ class Blackjack(Screen):
         """Draw buttons when user's turn."""
         # show total of cards
         total_text: pygame.Surface = s.p_font(40).render(
-            f"Total: {self.player.total()}", True, s.D2_GREEN
+            f"Total: {self.player.hand_total}", True, s.D2_GREEN
         )
         t_rect: pygame.Rect = total_text.get_rect(bottomleft=(80, 210))
+        self.surf.blit(total_text, t_rect)  # show total
 
         # show buttons if turn
-        if True:
-            self.surf.blit(total_text, t_rect)  # show total
-
+        if self.player.turn:
             self.hit_button.show(self.surf)
             if self.hit_button.clicked:
-                print("Hit")
+                self.network.send("hit")
 
             self.stand_button.show(self.surf)
             if self.stand_button.clicked:
-                print("Stand")
+                self.network.send("stand")
+
+        # both users not active, show results
+        elif not any([player.active for player in self.game.players]):
+            if self.player.win:
+                print("You win!")
+            else:
+                print("You lose!")
+
+        # otherwise, do next round
+        else:
+            self.surf.blit(self.w_text, self.w_rect)
+            self.network.send("next round")
 
     # run game
     def run(self) -> None:

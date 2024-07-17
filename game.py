@@ -2,7 +2,6 @@
 
 import random
 
-
 # player class to store user info
 class Player:
     """Create a player instance."""
@@ -11,15 +10,16 @@ class Player:
     def __init__(self) -> None:
         """Initialise the player."""
         # store player stats
-        self.turn: bool = False  # indicates whether it is player's turn
-        self.wins: int = 0
-        self.ties: int = 0
+        self.active: bool = True  # user has not stood
+        self.turn: bool = True  # indicates whether it is player's turn
+        self.win: bool = False
 
         # store player hand
         self.hand: list[str] = []
+        self.total()
 
     # total up hand
-    def total(self) -> int:
+    def total(self) -> None:
         """Total up the user's hand."""
         total: int = 0
         for card in self.hand:
@@ -38,7 +38,7 @@ class Player:
             # count number card
             else:
                 total += int(card)
-        return total
+        self.hand_total: int = total
 
 
 # game instance stores all game data
@@ -46,15 +46,8 @@ class Game:
     """Create a Blackjack game."""
 
     # initiator method
-    def __init__(self, game_id: int) -> None:
-        """
-        Initialise the game.
-
-        Parameters
-        ----------
-            game_id: the game to send a player to when threading
-
-        """
+    def __init__(self) -> None:
+        """Initialise the game."""
         self.ready: bool = False  # ready when two users have connected
 
         # create the players
@@ -78,17 +71,62 @@ class Game:
         """Deal a card to a player."""
         self.players[player_no].hand += self.deck[0]  # deal to hand
         self.deck.pop(0)  # remove dealt card from deck
-        print(self.players[player_no].hand)
+        self.players[player_no].total()
+        self.check_totals(player_no)  # check total
 
-    # play a round in the game
-    def play_round(self, player_no: int, move) -> None:
-        """Play a round of blackjack."""
+    # check totals
+    def check_totals(self, player_no: int) -> None:
+        """
+        Check totals of each player.
+
+        Parameters
+        ----------
+            player_no: user's player number
+
+        """
         pass
 
-    # check if players have went
-    def player_turn(self) -> bool:
-        """Check if players have finished their turn."""
-        return self.p1.turn and self.p2.turn
+    # user chooses to hit
+    def hit(self, player_no: int) -> None:
+        """
+        User chooses to hit, so deal them a card.
+
+        Parameters
+        ----------
+            player_no: player who has chosen to hit
+
+        """
+        self.deal_card(player_no)
+        self.players[player_no].turn = False
+
+    # user chooses to stand
+    def stand(self, player_no: int) -> None:
+        """
+        User chooses to stand, so end their turns.
+
+        Parameters
+        ----------
+            player_no: player who has chosen to hit
+
+        """
+        self.players[player_no].turn = False
+        self.players[player_no].active = False
+
+    # prepare next round
+    def next_round(self, player_no: int) -> None:
+        """
+        If users have both done their turn, do next.
+
+        Parameters
+        ----------
+            player_no: user's player number
+
+        """
+        # check whether both turns have been completed
+        if not any([player.turn for player in self.players]):
+            for player in self.players:
+                if player.active:
+                    player.turn = True  # reset turn
 
     # reset game
     def reset(self) -> None:

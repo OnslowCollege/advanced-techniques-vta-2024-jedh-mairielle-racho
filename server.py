@@ -56,9 +56,16 @@ def threaded(connection, player_no: int, game_id: int) -> None:
                         # reset game once finished
                         game.reset()
 
-                    elif data != "get":
+                    elif data == "hit":
+                        # player hits
+                        game.hit(player_no)
+
+                    elif data == "stand":
+                        game.stand(player_no)
+
+                    elif data != "next round":
                         # send the player's turn
-                        game.play_round(player_no, data)
+                        game.next_round(player_no)
 
                     # send response to server socket
                     connection.sendall(pickle.dumps(game))
@@ -84,7 +91,7 @@ def threaded(connection, player_no: int, game_id: int) -> None:
 
 while True:
     # establish connection
-    s, address = connection.accept()
+    sock, address = connection.accept()
     print("Connection to:", address)
 
     id_count += 1
@@ -94,7 +101,7 @@ while True:
     game_id = (id_count - 1) // 2
     # create a new game if user is player 1
     if id_count % 2 == 1:
-        games[game_id] = Game(game_id)
+        games[game_id] = Game()
         print(f"Creating a new game {game_id}...")
 
     # if user is player 2, send to a game
@@ -104,4 +111,4 @@ while True:
         player = 1  # i.e. player 2
 
     # start a new thread
-    start_new_thread(threaded, (s, player, game_id))
+    start_new_thread(threaded, (sock, player, game_id))
