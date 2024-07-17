@@ -2,21 +2,19 @@
 
 import pygame
 
-# client settings
+# server settings
 # school ip: 10.203.2.120
 # home ip: 192.168.68.153
 SERVER: str = "192.168.68.153"
 PORT: int = 1234
 
-# name
-NAME: str = "Onslow the Blackjack"
+# client window title
+CAPTION: str = "Onslow the Blackjack"
 
-# screen
+# screen specifications
 SCREEN_W: int = 600
 SCREEN_H: int = 650
-
-# framerate
-FPS: int = 60
+FPS: int = 60  # frame rate
 
 # colours
 WHITE: str = "#f7f6f6"
@@ -27,11 +25,11 @@ RED: str = "#b63110"
 
 
 # font
-def p_font(size: int) -> pygame.font.Font:
-    """Get the primary font."""
+def p_font(size: int) -> pygame.font.Font:  # primary font
+    """Initialise the primary font."""
     return pygame.font.Font("assets/font/coolvetica rg.otf", size)
 
 
-def s_font(size: int) -> pygame.font.Font:
-    """Get secondary font."""
+def s_font(size: int) -> pygame.font.Font:  # secondary font
+    """Initialise the secondary font."""
     return pygame.font.Font("assets/font/MusticaPro-SemiBold.otf", size)

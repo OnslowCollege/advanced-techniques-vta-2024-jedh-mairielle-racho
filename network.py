@@ -1,35 +1,42 @@
-"""Create the network to connect players together."""
-import settings as settings
+"""Create the network to connect player data together."""
+
+import settings as s
 import socket
 import pickle
 
 
-# create the network
+# create a connected socket
 class Network:
-    """The network."""
+    """Network one-end connection of a player."""
 
     # initiator method
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise the network."""
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = settings.SERVER
-        self.port = settings.PORT
-        self.addr = (self.server, self.port)
-        self.player_no = self.connect()
+        self.client: socket.socket = socket.socket(
+            socket.AF_INET, socket.SOCK_STREAM
+        )
+        self.server: str = s.SERVER
+        self.port: int = s.PORT
+        self.address: tuple[str, int] = (self.server, self.port)
+        self.player_no: str = self.connect()
 
     # connect users
     def connect(self):
-        """Get player number."""
+        """Connect user and establish player number."""
         try:
-            self.client.connect(self.addr)
+            self.client.connect(self.address)  # connect based on addr
             return self.client.recv(2048).decode()
-        except socket.error:
-            pass
+
+        # addr not found
+        except socket.error as er_m:
+            print(er_m)
 
     def send(self, data):
-        """Send information between users."""
+        """Send infromation between users."""
         try:
-            self.client.send(str.encode(data))  # send data
+            self.client.send(str.encode(data))  # send encoded data
             return pickle.loads(self.client.recv(2048 * 2))  # receive obj data
-        except socket.error as e:
-            print(e)
+
+        # data not found
+        except socket.error as er_m:
+            print(er_m)

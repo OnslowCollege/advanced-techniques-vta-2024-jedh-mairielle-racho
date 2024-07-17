@@ -1,16 +1,15 @@
 """
-Play Blackjack with an Onslow Twist.
+Play Blackjack with an Onslow twist.
 
 Created by: Jedh
-Date: 2024-06-17
+Date: 2024-06-07
 """
+# MUST RUN SERVER BEFORE PLAYING BLACKJACK
 
 import pygame
-import settings as settings
+import settings as s
 from network import Network
-import pickle
 import sys
-from game import Game
 
 
 # create buttons
@@ -21,7 +20,7 @@ class Button:
     def __init__(
         self,
         text: str,
-        size: int,
+        f_size: int,
         t_colour: str,
         t_h_colour: str,
         b_colour: str,
@@ -32,76 +31,76 @@ class Button:
         b_y: int,
     ) -> None:
         """
-        Initialise the button appearance.
+        Initialise the button.
 
         Parameters
         ----------
-            text: the button label
-            size: the font size of the button
-            t_colour: the non-hover text colour
-            t_h_colour: the hover text colour
-            b_colour: the non-hover button colour
-            b_h_colour: the hover button colour
-            b_width: the width of the button
-            b_height: the height of the button
-            b_x: the x value of topleft
-            b_y: the y value of topleft
+            text: button label
+            f_size: font size of the text
+            t_colour: non-hover text colour
+            t_h_colour: hover text colour
+            b_colour: non-hover button colour
+            b_h_colour: hover button colour
+            b_width: width of button
+            b_height: height of button
+            b_x: x coord of topleft
+            b_y: y coord of topleft
 
         """
         # button specifications
-        self.b_colour = b_colour
-        self.b_h_colour = b_h_colour
+        self.b_colour: str = b_colour
+        self.b_h_colour: str = b_h_colour
+        self.b_rect: pygame.Rect = pygame.Rect(b_x, b_y, b_width, b_height)
+        self.clicked: bool = False
 
-        self.b_rect = pygame.Rect(b_x, b_y, b_width, b_height)
-
-        # text colours
-        self.text = settings.s_font(size).render(text, True, t_colour)
-        self.h_text = settings.s_font(size).render(text, True, t_h_colour)
-        self.t_rect = self.text.get_rect(
+        # create the label
+        self.label: pygame.Surface = s.s_font(f_size).render(
+            text, True, t_colour
+        )
+        self.h_label: pygame.Surface = s.s_font(f_size).render(
+            text, True, t_h_colour
+        )
+        self.t_rect: pygame.Rect = self.label.get_rect(
             center=(self.b_rect.centerx, self.b_rect.centery - 3)
         )
 
     # show button
-    def show_button(self, surf: pygame.Surface) -> bool:
+    def show(self, surf: pygame.Surface) -> None:
         """
-        Draw and use button.
+        Draw and use the button.
 
         Parameters
         ----------
             surf: the pygame.Surface to display button on
-            b_pos: the coord of the topleft corner of the button
-        Returns true when clicked
 
         """
-        clicked = False
-        # draw button
+        clicked: bool = False  # check button clicked
 
-        m_pos = pygame.mouse.get_pos()
-        # check user interactions
-        # not hovering
+        m_pos: tuple[int, int] = pygame.mouse.get_pos()
+        # based on interactions, draw button
+        # mouse not hovering on button
         if not self.b_rect.collidepoint(m_pos):
             # show normal button
             pygame.draw.rect(surf, self.b_colour, self.b_rect, 0, 4)
-            surf.blit(self.text, self.t_rect)
+            surf.blit(self.label, self.t_rect)
 
-        # mouse hover
+        # mouse hovering
         else:
-            # display hover button
+            # show hover button
             pygame.draw.rect(surf, self.b_h_colour, self.b_rect, 0, 4)
-            surf.blit(self.h_text, self.t_rect)
+            surf.blit(self.h_label, self.t_rect)
 
-            # check click
+            # check if clicked
             if not clicked:
                 for events in pygame.event.get():
                     # user has clicked
                     if events.type == pygame.MOUSEBUTTONDOWN:
-                        clicked = True
+                        clicked = True  # resets right after due to loop
 
-                    # reset click
                     if events.type == pygame.MOUSEBUTTONUP:
                         clicked = False
 
-        return clicked
+        self.clicked = clicked
 
 
 # screen parent class
@@ -115,33 +114,23 @@ class Screen:
         self.run_display: bool = True
 
         # create display
-        self.screen = pygame.display.set_mode(
-            (settings.SCREEN_W, settings.SCREEN_H), pygame.RESIZABLE
-        )
-        pygame.display.set_caption(settings.NAME)  # name window
-        self.display_surf = pygame.display.get_surface()
-        self.w, self.h = pygame.display.get_surface().get_size()
+        self.screen = pygame.display.set_mode((s.SCREEN_W, s.SCREEN_H))
+        pygame.display.set_caption(s.CAPTION)
+        self.surf = pygame.display.get_surface()
 
+    # handle events
     def event_handler(self) -> None:
-        """Handle user-interaction events."""
-        # get center
-        self.w, self.h = pygame.display.get_surface().get_size()
-        # update clock ticks and display
-        self.clock.tick(settings.FPS)
-        pygame.display.update()
-
-        # event handler
+        """Handle user quit interaction events."""
+        # quit event handler
         for event in pygame.event.get():
             # if user quits program window
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-    def run(self) -> None:
-        """Run program."""
-        while self.run_display:
-            self.display_surf.fill(settings.WHITE)
-            self.event_handler()
+        # update clock ticks and display
+        self.clock.tick(s.FPS)
+        pygame.display.update()
 
 
 # main menu screen
@@ -154,219 +143,233 @@ class MainMenu(Screen):
         Screen.__init__(self)
 
         # bg image
-        self.bg = pygame.image.load("assets/images/main_menu.png")
+        self.BG: pygame.Surface = pygame.image.load(
+            "assets/images/main_menu.png"
+        )
+        self.bg_rect = self.BG.get_rect()
 
         # title
-        self.title = settings.p_font(100).render(
-            "ONSLOW", True, settings.D2_GREEN
+        self.title: pygame.Surface = s.p_font(100).render(
+            "ONSLOW", True, s.D2_GREEN
         )
-        self.sub = settings.s_font(30).render(
-            "The Blackjack", True, settings.D2_GREEN
+        self.title_rect: pygame.Rect = self.title.get_rect(
+            center=(self.bg_rect.centerx, self.bg_rect.top + 120)
+        )
+        self.subheading: pygame.Surface = s.s_font(30).render(
+            "The Blackjack", True, s.D2_GREEN
+        )
+        self.sub_rect: pygame.Rect = self.subheading.get_rect(
+            midleft=(self.title_rect.left, self.title_rect.y + 120)
         )
 
         # buttons
-        self.start_b = settings.s_font(30).render(
-            "Start game", True, settings.WHITE
-        )
-        self.tutorial_b = settings.s_font(30).render(
-            "How to play", True, settings.WHITE
-        )
-
-    # create display
-    def create_display(self) -> None:
-        """Create the display."""
-        # bg
-        self.display_surf.fill(settings.WHITE)
-        bg_rect = self.bg.get_rect(center=(self.w / 2, self.h / 2))
-        self.display_surf.blit(self.bg, bg_rect)
-
-        # title
-        title_rect = self.title.get_rect(
-            center=(bg_rect.centerx, bg_rect.top + 120)
-        )
-        sub_rect = self.sub.get_rect(
-            midleft=(title_rect.left, title_rect.y + 120)
-        )
-        self.display_surf.blit(self.title, title_rect)
-        self.display_surf.blit(self.sub, sub_rect)
-
-        # buttons
-        self.s_button = Button(
+        self.start_button: Button = Button(
             "Start game",
             30,
-            settings.D2_GREEN,
-            settings.WHITE,
-            settings.WHITE,
-            settings.RED,
+            s.D2_GREEN,
+            s.WHITE,
+            s.WHITE,
+            s.RED,
             220,
             50,
-            bg_rect.centerx - 110,
-            bg_rect.centery + 60,
+            self.bg_rect.centerx - 110,
+            self.bg_rect.centery + 60,
         )
-        self.start = self.s_button.show_button(self.display_surf)
-
-        self.t_button = Button(
+        self.tutorial_button: Button = Button(
             "How to play",
             30,
-            settings.D2_GREEN,
-            settings.WHITE,
-            settings.WHITE,
-            settings.RED,
+            s.D2_GREEN,
+            s.WHITE,
+            s.WHITE,
+            s.RED,
             220,
             50,
-            bg_rect.centerx - 110,
-            bg_rect.centery + 130,
+            self.bg_rect.centerx - 110,
+            self.bg_rect.centery + 130,
         )
-        self.tutorial = self.t_button.show_button(self.display_surf)
 
     # run screen
     def run(self) -> None:
         """Run screen."""
         while self.run_display:
             # create display
-            self.create_display()
+            self.surf.fill(s.WHITE)
+            self.surf.blit(self.BG, self.bg_rect)
+            self.surf.blit(self.title, self.title_rect)
+            self.surf.blit(self.subheading, self.sub_rect)
 
-            if self.start:
+            # display buttons
+            self.start_button.show(self.surf)
+            self.tutorial_button.show(self.surf)
+
+            # when buttons are used
+            if self.start_button.clicked:
                 self.run_display = False
-                StartGame().run()
-            if self.tutorial:
+                Blackjack().run()
+            if self.tutorial_button.clicked:
                 print("How to play!")
 
-            self.event_handler()
+            self.event_handler()  # handle quit events
 
 
-# run start
-class StartGame(Screen):
-    """Start game."""
+# connection lost screen
+class ConnectionLost(Screen):
+    """Show that connection has been lost."""
 
     # initiator method
     def __init__(self) -> None:
-        """Initialise game."""
+        """Initialise the game."""
         Screen.__init__(self)
 
-        # set up network
-        self.network = Network()
+        # connection lost screen
+        self.ticks: int = pygame.time.get_ticks()
+        self.c_lost_text: pygame.Surface = s.p_font(50).render(
+            "Connection lost...", True, s.D2_GREEN
+        )
+        self.c_lost_subtext: pygame.Surface = s.p_font(50).render(
+            "Returning to main menu", True, s.D2_GREEN
+        )
+
+        self.lost_rect: pygame.Rect = self.c_lost_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
+        )
+        self.subtext_rect: pygame.Rect = self.c_lost_subtext.get_rect(
+            center=(s.SCREEN_W / 2, self.lost_rect.bottom + 30)
+        )
+
+    # run screen
+    def run(self) -> None:
+        """Run connection lost screen."""
+        while self.run_display:
+            # display text
+            self.surf.fill(s.WHITE)
+            self.surf.blit(self.c_lost_text, self.lost_rect)
+            self.surf.blit(self.c_lost_subtext, self.subtext_rect)
+
+            current_ticks: int = pygame.time.get_ticks()
+            if current_ticks >= self.ticks + 1500:
+                self.run_display = False
+                MainMenu().run()
+
+            self.event_handler()  # handle quit event
+
+
+# blackjack game screen
+class Blackjack(Screen):
+    """Start a blackjack game between players."""
+
+    # initiator method
+    def __init__(self) -> None:
+        """Initialise the game."""
+        Screen.__init__(self)
+
+        # set up the connected socket
+        self.network: Network = Network()
         self.player_no: int = int(self.network.player_no)
-        print("You are player", self.player_no + 1)
+        print(self.player_no)
 
-        # waiting for connection text
-        self.c_text = settings.p_font(50).render(
-            "Waiting for connection...", True, settings.D2_GREEN
+        # waiting for connection screen
+        self.c_text: pygame.Surface = s.p_font(50).render(
+            "Waiting for connection...", True, s.D2_GREEN
         )
-        self.c_rect = self.c_text.get_rect(center=(300, 325))
-
-        # connection lost text
-        self.c_loss_text = settings.p_font(50).render(
-            "Connection lost...", True, settings.D2_GREEN
-        )
-        self.c_loss_rect = self.c_loss_text.get_rect(center=(300, 325))
-        self.c_loss_subtext = settings.s_font(30).render(
-            "Returning to main menu", True, settings.D1_GREEN
-        )
-        self.l_subtext_rect = self.c_loss_subtext.get_rect(
-            center=(300, self.c_loss_rect.bottom + 30)
+        self.c_rect: pygame.Rect = self.c_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
         )
 
-        # hit/stand buttons
-        self.buttons: list[Button] = []
-        b_texts: list[str] = ["Hit", "Stand"]
-        for i, b_text in enumerate(b_texts):
-            self.buttons.append(
-                Button(
-                    b_text,
-                    40,
-                    settings.WHITE,
-                    settings.WHITE,
-                    settings.D2_GREEN,
-                    settings.RED,
-                    200,
-                    70,
-                    85 + 230 * i,
-                    510,
-                )
+        # buttons
+        self.hit_button: Button = Button(
+            "Hit", 40, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 200, 70, 85, 510
+        )
+        self.stand_button: Button = Button(
+            "Stand", 40, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 200, 70, 315, 510
+        )
+
+    # draw cards of players onto screen
+    def display_cards(self) -> None:
+        """Draw the cards of the players."""
+        for i in range(2):
+            card_colour: str = s.WHITE if i == self.player_no else s.D1_GREEN
+            outline_colour: str = (
+                s.D1_GREEN if i == self.player_no else s.WHITE
             )
 
-    # draw cards
-    def draw_cards(self) -> None:
-        """Draw the cards of the players."""
-        for i in range(2):  # for both players
-            # front hand is user's
-            colour: str = [
-                settings.WHITE if i == self.player_no else settings.D1_GREEN
-            ][0]
-            o_colour: str = [
-                settings.D1_GREEN if i == self.player_no else settings.WHITE
-            ][0]
             for j, symbol in enumerate(self.game.players[i].hand):
                 if i == self.player_no:
+                    # player's card in front
                     c_rect: pygame.Rect = pygame.Rect(
                         (80 + 50 * j), (250 + 5 * j), 120, 200
                     )
                 else:
+                    # opposing player's cards at the back
                     c_rect = pygame.Rect(
                         (400 - 50 * j), (50 - 5 * j), 120, 200
                     )
-                # draw card
-                pygame.draw.rect(self.display_surf, colour, c_rect, 0, 4)
-                pygame.draw.rect(self.display_surf, o_colour, c_rect, 3, 4)
+
+                # draw cards
+                pygame.draw.rect(self.surf, card_colour, c_rect, 0, 4)
+                pygame.draw.rect(self.surf, outline_colour, c_rect, 3, 4)
+
                 # draw card symbol for user
                 if i == self.player_no:
-                    symbol_text = settings.p_font(30).render(
-                        symbol, True, settings.D2_GREEN
+                    symbol_label = s.p_font(30).render(
+                        symbol, True, s.D2_GREEN
                     )
-                    self.display_surf.blit(
-                        symbol_text, (c_rect.left + 10, c_rect.top + 1)
+                    self.surf.blit(
+                        symbol_label, (c_rect.left + 10, c_rect.top + 1)
                     )
-                    self.display_surf.blit(
-                        symbol_text, (c_rect.left + 10, c_rect.bottom - 41)
+                    self.surf.blit(
+                        symbol_label, (c_rect.left + 10, c_rect.bottom - 41)
                     )
 
     # draw hit/stand buttons if user turn
-    def draw_buttons(self) -> None:
+    def display_buttons(self) -> None:
         """Draw buttons when user's turn."""
-        total_text = settings.p_font(40).render(
-            f"Total: {self.player.total()}", True, settings.D2_GREEN
+        # show total of cards
+        total_text: pygame.Surface = s.p_font(40).render(
+            f"Total: {self.player.total()}", True, s.D2_GREEN
         )
-        if self.player.turn:
-            for button in self.buttons:
-                button.show_button(self.display_surf)  # show buttons
-                self.display_surf.blit(total_text, (90, 190))  # show total
+        t_rect: pygame.Rect = total_text.get_rect(bottomleft=(80, 210))
+
+        # show buttons if turn
+        if True:
+            self.surf.blit(total_text, t_rect)  # show total
+
+            self.hit_button.show(self.surf)
+            if self.hit_button.clicked:
+                print("Hit")
+
+            self.stand_button.show(self.surf)
+            if self.stand_button.clicked:
+                print("Stand")
 
     # run game
     def run(self) -> None:
-        """Run game."""
+        """Run blackjack game."""
         while self.run_display:
-            # draw GUI background
-            self.display_surf.fill(settings.WHITE)
+            # create display
+            self.surf.fill(s.WHITE)
 
-            # attempt to connect 2 clients
             try:
-                self.game = self.network.send("get")  # get their game
+                # get game from connection
+                self.game = self.network.send("get")  # get the user's game
                 self.player = self.game.players[self.player_no]
 
-                # if connection between two users has been established, play
+                # if two users connected, play
                 if self.game.ready:
-                    self.draw_cards()  # draw players' cards
-                    self.draw_buttons()  # draw buttons if user's turn
+                    self.display_cards()
+                    self.display_buttons()
 
-                # p1 waiting for another user (p2)
+                # p1 waiting for another user, p2, to join
                 else:
-                    self.display_surf.blit(self.c_text, self.c_rect)
+                    self.surf.blit(self.c_text, self.c_rect)
 
             except:
-                # other client has exited (e.g. other player lost connection)
-                # so stop game and tell still connected user
-                self.display_surf.blit(self.c_loss_text, self.c_loss_rect)
-                self.display_surf.blit(
-                    self.c_loss_subtext, self.l_subtext_rect
-                )
-                pygame.display.update()
-                pygame.time.wait(2000)  # wait 2s before main menu
+                # other client has quit (e.g. other player lost connection)
+                # stop game and tell still connected user
                 self.run_display = False
-                MainMenu().run()
+                ConnectionLost().run()
 
-            # program actions
-            self.event_handler()
+            self.event_handler()  # handle quit events
 
 
 if __name__ == "__main__":
