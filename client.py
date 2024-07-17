@@ -284,6 +284,15 @@ class Blackjack(Screen):
             "Stand", 40, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 200, 70, 315, 510
         )
 
+        # cards
+        self.card_faces: list[pygame.Surfaces] = [
+            pygame.image.load("assets/images/cards/face.png")
+        ]
+        for i in range(10):
+            self.card_faces.append(
+                pygame.image.load(f"assets/images/cards/{i + 1}.png")
+            )
+
     # draw cards of players onto screen
     def display_cards(self) -> None:
         """Draw the cards of the players."""
@@ -307,10 +316,15 @@ class Blackjack(Screen):
 
                 # draw cards
                 pygame.draw.rect(self.surf, card_colour, c_rect, 0, 4)
-                pygame.draw.rect(self.surf, outline_colour, c_rect, 3, 4)
 
                 # draw card symbol for user
                 if i == self.player_no:
+                    if symbol in ["J", "Q", "K", "A"]:
+                        index: int = 0
+                    else:
+                        index = int(symbol)
+                    self.surf.blit(self.card_faces[index], c_rect)
+
                     symbol_label = s.p_font(30).render(
                         symbol, True, s.D2_GREEN
                     )
@@ -320,6 +334,8 @@ class Blackjack(Screen):
                     self.surf.blit(
                         symbol_label, (c_rect.left + 10, c_rect.bottom - 41)
                     )
+
+                pygame.draw.rect(self.surf, outline_colour, c_rect, 3, 4)
 
     # draw hit/stand buttons if user turn
     def display_buttons(self) -> None:
