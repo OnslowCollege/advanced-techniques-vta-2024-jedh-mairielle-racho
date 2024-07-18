@@ -27,8 +27,8 @@ class Button:
         b_h_colour: str,
         b_width: int,
         b_height: int,
-        b_x: int,
-        b_y: int,
+        b_x: float,
+        b_y: float,
     ) -> None:
         """
         Initialise the button.
@@ -269,6 +269,7 @@ class Blackjack(Screen):
     def __init__(self) -> None:
         """Initialise the game."""
         Screen.__init__(self)
+        self.show_results: bool = False  # when game is finished
 
         # set up the connected socket
         try:
@@ -324,6 +325,44 @@ class Blackjack(Screen):
             )
             self.w_rect: pygame.Rect = self.w_text.get_rect(
                 center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+            )
+
+            # result buttons
+            self.rematch_button: Button = Button(
+                "Rematch player?",
+                30,
+                s.WHITE,
+                s.WHITE,
+                s.D2_GREEN,
+                s.RED,
+                280,
+                55,
+                s.SCREEN_W / 2 - 140,
+                s.SCREEN_H / 2 + 35,
+            )
+            self.new_button: Button = Button(
+                "New game",
+                30,
+                s.WHITE,
+                s.WHITE,
+                s.D2_GREEN,
+                s.RED,
+                280,
+                55,
+                s.SCREEN_W / 2 - 140,
+                s.SCREEN_H / 2 + 105,
+            )
+            self.back_button: Button = Button(
+                "Back to main menu",
+                30,
+                s.WHITE,
+                s.WHITE,
+                s.D2_GREEN,
+                s.RED,
+                280,
+                55,
+                s.SCREEN_W / 2 - 140,
+                s.SCREEN_H / 2 + 175,
             )
 
         # Connection error, server has not started
@@ -397,15 +436,69 @@ class Blackjack(Screen):
 
         # both users not active, show results
         elif not any([player.active for player in self.game.players]):
-            if self.player.win:
-                print("You win!")
-            else:
-                print("You lose!")
+            self.show_results = True
+            self.generate_result()
 
         # otherwise, do next round
         else:
             self.network.send("next round")
             self.surf.blit(self.w_text, self.w_rect)
+
+    # generate result
+    def generate_result(self) -> None:
+        """Generate result of game."""
+        # user resulting total
+        self.user_results: pygame.Surface = s.s_font(40).render(
+            f"You got {self.player.hand_total}", True, s.D1_GREEN
+        )
+        self.u_rect: pygame.Rect = self.user_results.get_rect(
+            center=(s.SCREEN_W / 2, 100)
+        )
+
+        # opponent total
+        self.opp_results: pygame.Surface = s.s_font(40).render(
+            "Opponent got "
+            f"{self.game.players[self.player_no - 1].hand_total}",
+            True,
+            s.D1_GREEN,
+        )
+        self.opp_rect: pygame.Rect = self.opp_results.get_rect(
+            center=(s.SCREEN_W / 2, self.u_rect.bottom + 40)
+        )
+
+        # who won
+        if self.player.win:
+            result: str = "won"
+        else:
+            result = "lost"
+        self.win_text: pygame.Surface = s.p_font(70).render(
+            f"You {result}!", True, s.RED
+        )
+        self.win_rect: pygame.Rect = self.win_text.get_rect(
+            center=(s.SCREEN_W / 2, self.opp_rect.bottom + 70)
+        )
+
+    # results screen
+    def results(self) -> None:
+        """Display results."""
+        # display result
+        self.surf.blit(self.user_results, self.u_rect)
+        self.surf.blit(self.opp_results, self.opp_rect)
+        self.surf.blit(self.win_text, self.win_rect)  # who won
+
+        # show buttons
+        self.rematch_button.show(self.surf)
+        if self.rematch_button.clicked:
+            print("Rematch")
+
+        self.new_button.show(self.surf)
+        if self.new_button.clicked:
+            print("New game")
+
+        self.back_button.show(self.surf)
+        if self.back_button.clicked:
+            self.run_display = False
+            MainMenu().run()
 
     # run game
     def run(self) -> None:
@@ -419,8 +512,12 @@ class Blackjack(Screen):
                 self.game = self.network.send("get")  # get the user's game
                 self.player = self.game.players[self.player_no]
 
+                # game finished, so show results
+                if self.show_results:
+                    self.results()
+
                 # if two users connected, play
-                if self.game.ready:
+                elif self.game.ready:
                     self.display_cards()
                     self.display_buttons()
 
