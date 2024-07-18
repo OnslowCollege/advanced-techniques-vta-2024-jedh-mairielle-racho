@@ -45,6 +45,8 @@ class Player:
 class Game:
     """Create a Blackjack game."""
 
+    MAX: int = 21
+
     # initiator method
     def __init__(self) -> None:
         """Initialise the game."""
@@ -69,22 +71,42 @@ class Game:
     # deal a card to a player
     def deal_card(self, player_no: int) -> None:
         """Deal a card to a player."""
-        self.players[player_no].hand += self.deck[0]  # deal to hand
+        self.players[player_no].hand.append(self.deck[0])  # deal to hand
         self.deck.pop(0)  # remove dealt card from deck
         self.players[player_no].total()
-        self.check_totals(player_no)  # check total
 
     # check totals
-    def check_totals(self, player_no: int) -> None:
-        """
-        Check totals of each player.
+    def check_totals(self) -> None:
+        """Check totals of each player."""
+        for i, player in enumerate(self.players):
+            # user got >21, so other player wins
+            if player.hand_total > 21:
+                self.players[i - 1].win = True
+                self.inactive()
 
-        Parameters
-        ----------
-            player_no: user's player number
+            # both users got 21, so tie
+            elif (
+                player.hand_total == Game.MAX
+                and self.players[i - 1] == Game.MAX
+            ):
+                self.inactive()
 
-        """
-        pass
+            # user got 21, so they win
+            elif player.hand_total == Game.MAX:
+                player.win = True
+                self.inactive()
+
+            # both players stood before 21
+            elif not any([p.active for p in self.players]):
+                if player.hand_total > self.players[i - 1].hand_total:
+                    player.win = True  # player with greater total wins
+
+    # disable turns
+    def inactive(self) -> None:
+        """Inactive as a result has occurred."""
+        for i in range(2):
+            self.players[i].turn = False
+            self.players[i].active = False
 
     # user chooses to hit
     def hit(self, player_no: int) -> None:
@@ -113,7 +135,7 @@ class Game:
         self.players[player_no].active = False
 
     # prepare next round
-    def next_round(self, player_no: int) -> None:
+    def next_round(self) -> None:
         """
         If users have both done their turn, do next.
 
@@ -122,6 +144,7 @@ class Game:
             player_no: user's player number
 
         """
+        self.check_totals()
         # check whether both turns have been completed
         if not any([player.turn for player in self.players]):
             for player in self.players:

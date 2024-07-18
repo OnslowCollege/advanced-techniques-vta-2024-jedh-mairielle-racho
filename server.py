@@ -16,7 +16,7 @@ except socket.error as er_m:
     print(er_m)
 
 connection.listen(2)
-print("Server started, waiting for connections...")
+print("Server started! Connected blackjack now available!\n")
 
 # store variables
 games: dict[int, Game] = {}  # allows multiple games at once
@@ -65,7 +65,7 @@ def threaded(connection, player_no: int, game_id: int) -> None:
 
                     elif data != "next round":
                         # send the player's turn
-                        game.next_round(player_no)
+                        game.next_round()
 
                     # send response to server socket
                     connection.sendall(pickle.dumps(game))
@@ -106,7 +106,7 @@ while True:
 
     # if user is player 2, send to a game
     else:
-        print(f"Connecting to game {game_id}...")
+        print(f"Connecting to game {game_id}...\n")
         games[game_id].ready = True
         player = 1  # i.e. player 2
 

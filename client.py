@@ -212,19 +212,26 @@ class MainMenu(Screen):
             self.event_handler()  # handle quit events
 
 
-# connection lost screen
-class ConnectionLost(Screen):
-    """Show that connection has been lost."""
+# connection error screen
+class ErrorConnection(Screen):
+    """Show that there has been error in connection."""
 
     # initiator method
-    def __init__(self) -> None:
-        """Initialise the game."""
+    def __init__(self, text: str) -> None:
+        """
+        Initialise the game.
+
+        Parameters
+        ----------
+            text: what to show user
+
+        """
         Screen.__init__(self)
 
         # connection lost screen
         self.ticks: int = pygame.time.get_ticks()
         self.c_lost_text: pygame.Surface = s.p_font(50).render(
-            "Connection lost...", True, s.D2_GREEN
+            text, True, s.D2_GREEN
         )
         self.c_lost_subtext: pygame.Surface = s.p_font(50).render(
             "Returning to main menu", True, s.D2_GREEN
@@ -264,41 +271,65 @@ class Blackjack(Screen):
         Screen.__init__(self)
 
         # set up the connected socket
-        self.network: Network = Network()
-        self.player_no: int = int(self.network.player_no)
+        try:
+            self.network: Network = Network()
+            self.player_no: int = int(self.network.player_no)
 
-        # waiting for connection screen
-        self.c_text: pygame.Surface = s.p_font(50).render(
-            "Waiting for connection...", True, s.D2_GREEN
-        )
-        self.c_rect: pygame.Rect = self.c_text.get_rect(
-            center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
-        )
-
-        # buttons
-        self.hit_button: Button = Button(
-            "Hit", 40, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 200, 70, 85, 510
-        )
-        self.stand_button: Button = Button(
-            "Stand", 40, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 200, 70, 315, 510
-        )
-
-        # cards
-        self.card_faces: list[pygame.Surfaces] = [
-            pygame.image.load("assets/images/cards/face.png")
-        ]
-        for i in range(10):
-            self.card_faces.append(
-                pygame.image.load(f"assets/images/cards/{i + 1}.png")
+            # waiting for connection screen
+            self.c_text: pygame.Surface = s.p_font(50).render(
+                "Waiting for connection...", True, s.D2_GREEN
+            )
+            self.c_rect: pygame.Rect = self.c_text.get_rect(
+                center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
             )
 
-        # waiting for other player turn
-        self.w_text: pygame.Surface = s.s_font(80).render(
-            "Waiting...", True, s.D1_GREEN
-        )
-        self.w_rect: pygame.Rect = self.w_text.get_rect(
-            center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
-        )
+            # buttons
+            self.hit_button: Button = Button(
+                "Hit",
+                40,
+                s.WHITE,
+                s.WHITE,
+                s.D2_GREEN,
+                s.RED,
+                200,
+                70,
+                85,
+                510,
+            )
+            self.stand_button: Button = Button(
+                "Stand",
+                40,
+                s.WHITE,
+                s.WHITE,
+                s.D2_GREEN,
+                s.RED,
+                200,
+                70,
+                315,
+                510,
+            )
+
+            # cards
+            self.card_faces: list[pygame.Surfaces] = [
+                pygame.image.load("assets/images/cards/face.png")
+            ]
+            for i in range(10):
+                self.card_faces.append(
+                    pygame.image.load(f"assets/images/cards/{i + 1}.png")
+                )
+
+            # waiting for other player turn
+            self.w_text: pygame.Surface = s.s_font(80).render(
+                "Waiting...", True, s.D1_GREEN
+            )
+            self.w_rect: pygame.Rect = self.w_text.get_rect(
+                center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+            )
+
+        # Connection error, server has not started
+        except TypeError:
+            self.run_display = False
+            ErrorConnection("Run server first...").run()
 
     # draw cards of players onto screen
     def display_cards(self) -> None:
@@ -373,8 +404,8 @@ class Blackjack(Screen):
 
         # otherwise, do next round
         else:
-            self.surf.blit(self.w_text, self.w_rect)
             self.network.send("next round")
+            self.surf.blit(self.w_text, self.w_rect)
 
     # run game
     def run(self) -> None:
@@ -401,7 +432,7 @@ class Blackjack(Screen):
                 # other client has quit (e.g. other player lost connection)
                 # stop game and tell still connected user
                 self.run_display = False
-                ConnectionLost().run()
+                ErrorConnection("Connection lost...").run()
 
             self.event_handler()  # handle quit events
 
