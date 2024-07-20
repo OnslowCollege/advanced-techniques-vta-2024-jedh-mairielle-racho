@@ -13,6 +13,7 @@ class Player:
         self.active: bool = True  # user has not stood
         self.turn: bool = True  # indicates whether it is player's turn
         self.win: bool = False
+        self.bust: bool = False
 
         # store player hand
         self.hand: list[str] = []
@@ -51,22 +52,8 @@ class Game:
     def __init__(self) -> None:
         """Initialise the game."""
         self.ready: bool = False  # ready when two users have connected
-
-        # create the players
-        self.p1: Player = Player()
-        self.p2: Player = Player()
-        self.players: list[Player] = [self.p1, self.p2]
-
-        # create the deck
-        self.deck: list[str] = (
-            [str(i) for i in range(1, 11)] + ["J", "Q", "K", "A"]
-        ) * 4
-        random.shuffle(self.deck)  # shuffle deck
-
-        # deal initial 2 cards
-        for i in range(2):
-            self.deal_card(0)  # deal to player 1
-            self.deal_card(1)  # deal to player 2
+        self.bust: bool = False  # if a user busts
+        self.reset()  # create vars for game
 
     # deal a card to a player
     def deal_card(self, player_no: int) -> None:
@@ -81,6 +68,8 @@ class Game:
         for i, player in enumerate(self.players):
             # user got >21, so other player wins
             if player.hand_total > 21:
+                player.bust = True
+                self.bust = True
                 self.players[i - 1].win = True
                 self.inactive()
 
@@ -154,4 +143,18 @@ class Game:
     # reset game
     def reset(self) -> None:
         """Reset the game."""
-        pass
+        # create the players
+        self.p1: Player = Player()
+        self.p2: Player = Player()
+        self.players: list[Player] = [self.p1, self.p2]
+
+        # create the deck
+        self.deck: list[str] = (
+            [str(i) for i in range(1, 11)] + ["J", "Q", "K", "A"]
+        ) * 4
+        random.shuffle(self.deck)  # shuffle deck
+
+        # deal initial 2 cards
+        for i in range(2):
+            self.deal_card(0)  # deal to player 1
+            self.deal_card(1)  # deal to player 2

@@ -365,14 +365,32 @@ class Blackjack(Screen):
                 s.SCREEN_H / 2 + 175,
             )
 
+            # bust text
+            self.bust_text: pygame.Surface = s.p_font(100).render(
+                "Bust!", True, s.WHITE
+            )
+            self.bust_rect: pygame.Rect = self.bust_text.get_rect(
+                center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+            )
+            self.bg_rect: pygame.Rect = pygame.Rect(
+                150, self.bust_rect.top - 10, 300, 150
+            )
+
         # Connection error, server has not started
         except TypeError:
             self.run_display = False
             ErrorConnection("Run server first...").run()
 
-    # draw cards of players onto screen
+    # draw cards and total of players onto screen
     def display_cards(self) -> None:
         """Draw the cards of the players."""
+        # show total of cards
+        total_text: pygame.Surface = s.p_font(40).render(
+            f"Total: {self.player.hand_total}", True, s.D2_GREEN
+        )
+        t_rect: pygame.Rect = total_text.get_rect(bottomleft=(80, 210))
+        self.surf.blit(total_text, t_rect)  # show total
+
         for i in range(2):
             card_colour: str = s.WHITE if i == self.player_no else s.D1_GREEN
             outline_colour: str = (
@@ -417,13 +435,6 @@ class Blackjack(Screen):
     # draw hit/stand buttons if user turn
     def display_buttons(self) -> None:
         """Draw buttons when user's turn."""
-        # show total of cards
-        total_text: pygame.Surface = s.p_font(40).render(
-            f"Total: {self.player.hand_total}", True, s.D2_GREEN
-        )
-        t_rect: pygame.Rect = total_text.get_rect(bottomleft=(80, 210))
-        self.surf.blit(total_text, t_rect)  # show total
-
         # show buttons if turn
         if self.player.turn:
             self.hit_button.show(self.surf)
@@ -436,13 +447,25 @@ class Blackjack(Screen):
 
         # both users not active, show results
         elif not any([player.active for player in self.game.players]):
-            self.show_results = True
             self.generate_result()
+            self.ticks: int = pygame.time.get_ticks()
+            self.show_results = True
 
         # otherwise, do next round
         else:
             self.network.send("next round")
             self.surf.blit(self.w_text, self.w_rect)
+
+    # player busts
+    def bust(self) -> None:
+        """If a player busts, show."""
+        current_ticks: int = pygame.time.get_ticks()
+        if current_ticks <= self.ticks + 1000:
+            self.display_cards()
+            pygame.draw.rect(self.surf, s.RED, self.bg_rect, 0, 4)
+            self.surf.blit(self.bust_text, self.bust_rect)
+        else:
+            self.results()
 
     # generate result
     def generate_result(self) -> None:
@@ -467,10 +490,12 @@ class Blackjack(Screen):
         )
 
         # who won
-        if self.player.win:
+        if self.player.win:  # user wins
             result: str = "won"
-        else:
+        elif self.game.players[self.player_no - 1].win:  # opp wins
             result = "lost"
+        else:  # tie
+            result = "tie"
         self.win_text: pygame.Surface = s.p_font(70).render(
             f"You {result}!", True, s.RED
         )
@@ -486,14 +511,11 @@ class Blackjack(Screen):
         self.surf.blit(self.opp_results, self.opp_rect)
         self.surf.blit(self.win_text, self.win_rect)  # who won
 
-        # show buttons
-        self.rematch_button.show(self.surf)
-        if self.rematch_button.clicked:
-            print("Rematch")
-
         self.new_button.show(self.surf)
         if self.new_button.clicked:
-            print("New game")
+            self.run_display = False
+            self.network.send("new game")
+            Blackjack().run()
 
         self.back_button.show(self.surf)
         if self.back_button.clicked:
@@ -514,7 +536,10 @@ class Blackjack(Screen):
 
                 # game finished, so show results
                 if self.show_results:
-                    self.results()
+                    if self.player.bust:  # if user had bust
+                        self.bust()
+                    else:
+                        self.results()
 
                 # if two users connected, play
                 elif self.game.ready:

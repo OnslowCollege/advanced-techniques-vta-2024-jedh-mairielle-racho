@@ -63,9 +63,12 @@ def threaded(connection, player_no: int, game_id: int) -> None:
                     elif data == "stand":
                         game.stand(player_no)
 
-                    elif data != "next round":
+                    elif data == "next round":
                         # send the player's turn
                         game.next_round()
+
+                    elif data == "new game":
+                        pass
 
                     # send response to server socket
                     connection.sendall(pickle.dumps(game))
@@ -95,6 +98,7 @@ while True:
     print("Connection to:", address)
 
     id_count += 1
+    print(id_count)
     player = 0  # i.e. player 1
 
     # create games for every 2 players
