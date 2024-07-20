@@ -98,7 +98,7 @@ while True:
     print("Connection to:", address)
 
     id_count += 1
-    print(id_count)
+    print("ID count: ", id_count)
     player = 0  # i.e. player 1
 
     # create games for every 2 players

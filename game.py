@@ -14,6 +14,7 @@ class Player:
         self.turn: bool = True  # indicates whether it is player's turn
         self.win: bool = False
         self.bust: bool = False
+        self.blackjack: bool = False
 
         # store player hand
         self.hand: list[str] = []
@@ -52,7 +53,8 @@ class Game:
     def __init__(self) -> None:
         """Initialise the game."""
         self.ready: bool = False  # ready when two users have connected
-        self.bust: bool = False  # if a user busts
+        self.bust: bool = False
+        self.blackjack: bool = False
         self.reset()  # create vars for game
 
     # deal a card to a player
@@ -68,8 +70,8 @@ class Game:
         for i, player in enumerate(self.players):
             # user got >21, so other player wins
             if player.hand_total > 21:
-                player.bust = True
                 self.bust = True
+                player.bust = True
                 self.players[i - 1].win = True
                 self.inactive()
 
@@ -82,6 +84,8 @@ class Game:
 
             # user got 21, so they win
             elif player.hand_total == Game.MAX:
+                self.blackjack = True
+                player.blackjack = True
                 player.win = True
                 self.inactive()
 
