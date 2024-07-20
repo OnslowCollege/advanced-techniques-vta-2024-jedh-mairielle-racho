@@ -25,7 +25,7 @@ class Player:
         total: int = 0
         for card in self.hand:
             # user has face card (except ace) or 10
-            if card in ["10", "J", "Q", "K", "A"]:
+            if card in ["10", "J", "Q", "K"]:
                 total += 10
             # user has ace (automatically count current best choice)
             elif card == "A":

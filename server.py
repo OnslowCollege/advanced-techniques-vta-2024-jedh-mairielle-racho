@@ -67,19 +67,19 @@ def threaded(connection, player_no: int, game_id: int) -> None:
                         # send the player's turn
                         game.next_round()
 
-                    elif data == "new game":
-                        pass
+                    elif data == "finished":
+                        print("Game finished")
+                        break
 
                     # send response to server socket
                     connection.sendall(pickle.dumps(game))
 
             else:  # game doesn't exit (i.e. a player disconnects)
+                # connection has been lost, so disconnect both
+                print("Lost connection")
                 break
         except socket.error:  # error in receiving data occurred
             break
-
-    # connection has been lost, so disconnect both
-    print("Lost connection")
 
     # delete game
     try:
