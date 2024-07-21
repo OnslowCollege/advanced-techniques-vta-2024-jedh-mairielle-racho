@@ -33,9 +33,9 @@ class Player:
                 # ace == 1 if otherwise makes total >21
                 if (total + 10) > 21:
                     total += 1
-                # ace == 10
+                # ace == 11
                 else:
-                    total += 10
+                    total += 11
 
             # count number card
             else:
