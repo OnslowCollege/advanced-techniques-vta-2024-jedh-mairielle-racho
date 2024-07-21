@@ -437,7 +437,8 @@ class Blackjack(Screen):
         bg_colour: str,
         width: int,
         height: int,
-        user: bool,
+        centerx: float,
+        centery: float,
     ) -> None:
         """
         Display other visual indicators of the game.
@@ -450,16 +451,11 @@ class Blackjack(Screen):
             bg_colour: colour of rect behind text
             width: width of bg rect
             height: height of bg rect
-            user: whether it is an indicator belonging to the user
+            centerx: x coord of bg centre
+            centery: y coord of bg centre
 
         """
         # generate widgets
-        if user:
-            centerx: float = s.SCREEN_W / 2
-            centery: float = 550 - height / 2
-        else:
-            centerx = 550 - width / 2
-            centery = 100 + height / 2
         bg_rect: pygame.Rect = pygame.Rect(
             centerx - (width / 2), centery - height / 2, width, height
         )
@@ -472,18 +468,70 @@ class Blackjack(Screen):
         pygame.draw.rect(self.surf, bg_colour, bg_rect, 0, 4)
         self.surf.blit(label, label_rect)
 
-    # player busts
-    def bust(self, user: bool) -> None:
-        """
-        If a player busts, show.
+    # draw card result
+    def display_card_result(self) -> None:
+        """Show card result after a game."""
+        # show card results of each player
+        for i, player in enumerate(self.game.players):
+            user: int = 0 if i == self.player_no else 1  # if cards are user's
+            user_text: str = "Your" if i == self.player_no else "Opponent's"
+            cards_start: float = (
+                s.SCREEN_W - ((len(player.hand) + 1) * 50)
+            ) / 2
 
-        Parameters
-        ----------
-            user: whether it was user who bust
+            # show total of cards
+            total_text: pygame.Surface = s.p_font(40).render(
+                f"{user_text} Total: {player.hand_total}", True, s.D2_GREEN
+            )
+            t_rect: pygame.Rect = total_text.get_rect(
+                center=(s.SCREEN_W / 2, 590 - 550 * user)
+            )
+            self.surf.blit(total_text, t_rect)  # show total
 
-        """
-        self.display_cards()
-        self.display_indicator("Bust!", 70, s.WHITE, s.RED, 300, 150, user)
+            # draw cards
+            for j, symbol in enumerate(player.hand):
+                c_rect: pygame.Rect = pygame.Rect(
+                    (cards_start + 50 * j),
+                    (t_rect.bottom + 20 if bool(user) else t_rect.top - 220),
+                    120,
+                    200,
+                )
+                if symbol in ["J", "Q", "K", "A"]:
+                    index: int = 0
+                else:
+                    index = int(symbol)
+                self.surf.blit(self.card_faces[index], c_rect)
+
+                symbol_label = s.p_font(30).render(symbol, True, s.D2_GREEN)
+                self.surf.blit(
+                    symbol_label, (c_rect.left + 10, c_rect.top + 1)
+                )
+                self.surf.blit(
+                    symbol_label, (c_rect.left + 10, c_rect.bottom - 41)
+                )
+
+                pygame.draw.rect(self.surf, s.D1_GREEN, c_rect, 3, 4)
+
+            # draw other conditions (i.e. bust or blackjack)
+            if player.bust or player.blackjack:
+                if player.bust:
+                    text: str = "Bust!"
+                    colour: str = s.RED
+                    width: int = 170
+                elif player.blackjack:
+                    text = "Blackjack!"
+                    colour = s.L_GREEN
+                    width = 180
+                self.display_indicator(
+                    text,
+                    65,
+                    s.WHITE,
+                    colour,
+                    width,
+                    80,
+                    s.SCREEN_W / 2,
+                    c_rect.top + 100,
+                )
 
     # run game
     def run(self) -> None:
@@ -502,44 +550,11 @@ class Blackjack(Screen):
                 if self.show_results:
                     # show short card result before main result screen
                     current_ticks: int = pygame.time.get_ticks()
-                    if current_ticks <= self.ticks + 1000 and (
-                        self.game.bust or self.game.blackjack
-                    ):
-                        self.display_cards()
-                        # if a bust occurred
-                        if self.player.bust or self.opp.bust:
-                            user = self.player.bust
-                            f_size: int = 90 if self.player.bust else 50
-                            width: int = 300 if self.player.bust else 150
-                            height: int = 150 if self.player.bust else 70
-                            self.display_indicator(
-                                "Bust!",
-                                f_size,
-                                s.WHITE,
-                                s.RED,
-                                width,
-                                height,
-                                user,
-                            )
+                    if current_ticks <= self.ticks + 2000:
+                        self.display_card_result()
 
-                        # blackjack occurred
-                        else:
-                            user = self.player.blackjack
-                            f_size = 50 if self.player.blackjack else 30
-                            width = 300 if self.player.blackjack else 125
-                            height = 130 if self.player.blackjack else 70
-                            self.display_indicator(
-                                "Blackjack!",
-                                f_size,
-                                s.WHITE,
-                                s.L_GREEN,
-                                width,
-                                height,
-                                user,
-                            )
-
-                    # if both stood, go straight to results screen
-                    # otherwise, go after short result
+                    ## if both stood, go straight to results screen
+                    ## otherwise, go after short result
                     else:
                         self.run_display = False
                         self.network.send("finished")
@@ -552,7 +567,14 @@ class Blackjack(Screen):
                     # indicate whether other player has stood
                     if not self.opp.active and self.player.active:
                         self.display_indicator(
-                            "Stood", 40, s.WHITE, s.L_GREEN, 150, 50, False
+                            "Stood",
+                            40,
+                            s.WHITE,
+                            s.L_GREEN,
+                            150,
+                            50,
+                            470,
+                            150,
                         )
 
                 # p1 waiting for another user, p2, to join
