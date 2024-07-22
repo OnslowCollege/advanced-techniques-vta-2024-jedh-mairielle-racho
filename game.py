@@ -6,6 +6,9 @@ import random
 class Player:
     """Create a player instance."""
 
+    ACE_MAX: int = 11
+    ACE_MIN: int = 1
+
     # initiator method
     def __init__(self) -> None:
         """Initialise the player."""
@@ -32,10 +35,10 @@ class Player:
             elif card == "A":
                 # ace == 1 if otherwise makes total >21
                 if (total + 10) > 21:
-                    total += 1
-                # ace == 10
+                    total += Player.ACE_MIN
+                # ace == 11
                 else:
-                    total += 10
+                    total += Player.ACE_MAX
 
             # count number card
             else:

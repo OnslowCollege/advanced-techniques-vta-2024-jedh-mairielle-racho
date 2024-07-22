@@ -3,7 +3,7 @@
 import pygame
 
 # server settings
-# school ip: 10.203.2.120
+# school ip: 10.47.40.56
 # home ip: 192.168.68.153
 SERVER: str = "192.168.68.153"
 PORT: int = 1234

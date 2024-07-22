@@ -521,7 +521,7 @@ class Blackjack(Screen):
                 elif player.blackjack:
                     text = "Blackjack!"
                     colour = s.L_GREEN
-                    width = 180
+                    width = 270
                 self.display_indicator(
                     text,
                     65,
