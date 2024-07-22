@@ -420,6 +420,7 @@ class Blackjack(Screen):
 
         # both users not active, show results
         elif not any([player.active for player in self.game.players]):
+            self.network.send("next round")
             self.ticks: int = pygame.time.get_ticks()  # get ticks for clock
             self.show_results = True
 

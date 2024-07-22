@@ -165,3 +165,4 @@ class Game:
         for i in range(2):
             self.deal_card(0)  # deal to player 1
             self.deal_card(1)  # deal to player 2
+        self.check_totals()
