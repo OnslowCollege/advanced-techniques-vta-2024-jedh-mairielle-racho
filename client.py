@@ -205,9 +205,10 @@ class MainMenu(Screen):
             # when buttons are used
             if self.start_button.clicked:
                 self.run_display = False
-                Blackjack().run()
+                Gameplay().run()
             if self.tutorial_button.clicked:
-                print("How to play!")
+                self.run_display = False
+                Rules().run()
 
             self.event_handler()  # handle quit events
 
@@ -261,8 +262,62 @@ class ErrorConnection(Screen):
             self.event_handler()  # handle quit event
 
 
-# blackjack game screen
-class Blackjack(Screen):
+# rules screen via main menu
+class Rules(Screen):
+    """Teach user how to play Blackjack."""
+
+    # initiator method
+    def __init__(self) -> None:
+        """Initialise the tutorial screen."""
+        Screen.__init__(self)
+
+        # bg
+        self.bg: pygame.Surface = pygame.image.load(
+            "assets/images/Simple Rules-01.png"
+        )
+
+        # create buttons
+        self.back_button: Button = Button(
+            "Back to Main Menu",
+            30,
+            s.WHITE,
+            s.WHITE,
+            s.D2_GREEN,
+            s.RED,
+            280,
+            55,
+            160,
+            530,
+        )
+        self.hit_button: Button = Button(
+            "Hit", 30, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 130, 50, 58, 225
+        )
+        self.stand_button: Button = Button(
+            "Stand", 30, s.WHITE, s.WHITE, s.D2_GREEN, s.RED, 130, 50, 58, 284
+        )
+
+    # run screen
+    def run(self) -> None:
+        """Run screen to show simple rules."""
+        while self.run_display:
+            self.surf.fill(s.WHITE)
+
+            # display rules and button widgets
+            self.surf.blit(self.bg, (0, 0))
+            self.hit_button.show(self.surf)
+            self.stand_button.show(self.surf)
+
+            # back to menu button
+            self.back_button.show(self.surf)
+            if self.back_button.clicked:
+                self.run_display = False
+                MainMenu().run()
+
+            self.event_handler()  # handle quit events
+
+
+# blackjack gameplay screen
+class Gameplay(Screen):
     """Start a blackjack game between players."""
 
     # initiator method
@@ -270,91 +325,149 @@ class Blackjack(Screen):
         """Initialise the game."""
         Screen.__init__(self)
         self.show_results: bool = False  # when game is finished
+        self.show_menu: bool = False  # show popup menu
 
         # set up the connected socket
         try:
             self.network: Network = Network()
             self.player_no: int = int(self.network.player_no)
 
-            # waiting for connection screen
-            self.c_text: pygame.Surface = s.p_font(50).render(
-                "Waiting for connection...", True, s.D2_GREEN
-            )
-            self.c_rect: pygame.Rect = self.c_text.get_rect(
-                center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
-            )
+            # initialise graphics
+            self.initialise_texts()
+            self.initialise_widgets()
 
-            # buttons
-            self.hit_button: Button = Button(
-                "Hit",
-                40,
-                s.WHITE,
-                s.WHITE,
-                s.D2_GREEN,
-                s.RED,
-                200,
-                70,
-                85,
-                510,
-            )
-            self.stand_button: Button = Button(
-                "Stand",
-                40,
-                s.WHITE,
-                s.WHITE,
-                s.D2_GREEN,
-                s.RED,
-                200,
-                70,
-                315,
-                510,
-            )
-
-            # cards
-            self.card_faces: list[pygame.Surfaces] = [
-                pygame.image.load("assets/images/cards/face.png")
-            ]
-            for i in range(10):
-                self.card_faces.append(
-                    pygame.image.load(f"assets/images/cards/{i + 1}.png")
-                )
-
-            # waiting for other player turn
-            self.w_text: pygame.Surface = s.s_font(80).render(
-                "Waiting...", True, s.D1_GREEN
-            )
-            self.w_rect: pygame.Rect = self.w_text.get_rect(
-                center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
-            )
-
-            # other player stands text
-            self.stand_text: pygame.Surface = s.p_font(100).render(
-                "Stand", True, s.WHITE
-            )
-            self.stand_rect: pygame.Rect = self.stand_text.get_rect(
-                center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
-            )
-            self.stand_bg_rect: pygame.Rect = pygame.Rect(
-                150, self.stand_rect.top - 10, 300, 150
-            )
-
-            # bust text
-            self.bust_text: pygame.Surface = s.p_font(100).render(
-                "Bust!", True, s.WHITE
-            )
-            self.bust_rect: pygame.Rect = self.bust_text.get_rect(
-                center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
-            )
-            self.bg_rect: pygame.Rect = pygame.Rect(
-                150, self.bust_rect.top - 10, 300, 150
-            )
-
-        # Connection error, server has not started
         except TypeError:
             self.run_display = False
             ErrorConnection("Run server first...").run()
 
-    # draw cards and total of players onto screen
+    # create gameplay widgets
+    def initialise_widgets(self) -> None:
+        """Initialise widgets."""
+        # gameplay buttons
+        self.hit_button: Button = Button(
+            "Hit",
+            40,
+            s.WHITE,
+            s.WHITE,
+            s.D2_GREEN,
+            s.RED,
+            200,
+            70,
+            85,
+            510,
+        )
+        self.stand_button: Button = Button(
+            "Stand",
+            40,
+            s.WHITE,
+            s.WHITE,
+            s.D2_GREEN,
+            s.RED,
+            200,
+            70,
+            315,
+            510,
+        )
+
+        # other player stands text
+        self.stand_text: pygame.Surface = s.p_font(100).render(
+            "Stand", True, s.WHITE
+        )
+        self.stand_rect: pygame.Rect = self.stand_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+        )
+        self.stand_bg_rect: pygame.Rect = pygame.Rect(
+            150, self.stand_rect.top - 10, 300, 150
+        )
+
+        # cards
+        self.card_faces: list[pygame.Surfaces] = [
+            pygame.image.load("assets/images/cards/face.png")
+        ]
+        for i in range(10):
+            self.card_faces.append(
+                pygame.image.load(f"assets/images/cards/{i + 1}.png")
+            )
+
+    # create texts
+    def initialise_texts(self) -> None:
+        """Initialise texts."""
+        # waiting for connection screen
+        self.c_text: pygame.Surface = s.p_font(50).render(
+            "Waiting for connection...", True, s.D2_GREEN
+        )
+        self.c_rect: pygame.Rect = self.c_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H / 2)
+        )
+
+        # waiting for other player turn
+        self.w_text: pygame.Surface = s.s_font(80).render(
+            "Waiting...", True, s.D1_GREEN
+        )
+        self.w_rect: pygame.Rect = self.w_text.get_rect(
+            center=(s.SCREEN_W / 2, s.SCREEN_H - 100)
+        )
+
+        # popup menu widgets
+        self.popup_text: pygame.Surface = s.s_font(30).render(
+            "Press ESC for Rules", True, s.D2_GREEN
+        )
+        self.popup_rect: pygame.Rect = self.popup_text.get_rect(
+            center=(self.w_rect.centerx, self.w_rect.bottom + 10)
+        )
+        self.popup_bg: pygame.Rect = pygame.Rect(150, 100, 300, 350)
+        self.popup_rules: pygame.Surface = pygame.image.load(
+            "assets/images/Popup Rules.png"
+        )
+        self.back_button: Button = Button(
+            "Back to Main Menu",
+            30,
+            s.D2_GREEN,
+            s.RED,
+            s.WHITE,
+            s.WHITE,
+            270,
+            40,
+            165,
+            395,
+        )
+
+    # event handler, reprised
+    def event_handler(self) -> None:
+        """Handle user quit interaction events."""
+        # quit event handler
+        for event in pygame.event.get():
+            # if user quits program window
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # if user presses ESC (show popup menu)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.show_menu = not self.show_menu
+
+        # update clock ticks and display
+        self.clock.tick(s.FPS)
+        pygame.display.update()
+
+    # show menu popup
+    def display_menu(self) -> None:
+        """Display popup menu when ESC pressed."""
+        if self.show_menu:
+            # draw bg
+            pygame.draw.rect(self.surf, s.D2_GREEN, self.popup_bg, 0, 4)
+
+            # draw rules
+            self.surf.blit(self.popup_rules, self.popup_bg.topleft)
+
+            # draw back button
+            self.back_button.show(self.surf)
+            if self.back_button.clicked:
+                self.run_display = False
+                self.network.send("finished")
+                MainMenu().run()
+
+    # draw cards and player total onto screen
     def display_cards(self) -> None:
         """Draw the cards of the players."""
         # show total of cards
@@ -420,6 +533,7 @@ class Blackjack(Screen):
 
         # both users not active, show results
         elif not any([player.active for player in self.game.players]):
+            self.network.send("next round")
             self.ticks: int = pygame.time.get_ticks()  # get ticks for clock
             self.show_results = True
 
@@ -437,7 +551,8 @@ class Blackjack(Screen):
         bg_colour: str,
         width: int,
         height: int,
-        user: bool,
+        centerx: float,
+        centery: float,
     ) -> None:
         """
         Display other visual indicators of the game.
@@ -450,16 +565,11 @@ class Blackjack(Screen):
             bg_colour: colour of rect behind text
             width: width of bg rect
             height: height of bg rect
-            user: whether it is an indicator belonging to the user
+            centerx: x coord of bg centre
+            centery: y coord of bg centre
 
         """
         # generate widgets
-        if user:
-            centerx: float = s.SCREEN_W / 2
-            centery: float = 550 - height / 2
-        else:
-            centerx = 550 - width / 2
-            centery = 100 + height / 2
         bg_rect: pygame.Rect = pygame.Rect(
             centerx - (width / 2), centery - height / 2, width, height
         )
@@ -472,18 +582,70 @@ class Blackjack(Screen):
         pygame.draw.rect(self.surf, bg_colour, bg_rect, 0, 4)
         self.surf.blit(label, label_rect)
 
-    # player busts
-    def bust(self, user: bool) -> None:
-        """
-        If a player busts, show.
+    # draw card result
+    def display_card_result(self) -> None:
+        """Show card result after a game."""
+        # show card results of each player
+        for i, player in enumerate(self.game.players):
+            user: int = 0 if i == self.player_no else 1  # if cards are user's
+            user_text: str = "Your" if i == self.player_no else "Opponent's"
+            cards_start: float = (
+                s.SCREEN_W - ((len(player.hand) + 1) * 50)
+            ) / 2
 
-        Parameters
-        ----------
-            user: whether it was user who bust
+            # show total of cards
+            total_text: pygame.Surface = s.p_font(40).render(
+                f"{user_text} Total: {player.hand_total}", True, s.D2_GREEN
+            )
+            t_rect: pygame.Rect = total_text.get_rect(
+                center=(s.SCREEN_W / 2, 590 - 550 * user)
+            )
+            self.surf.blit(total_text, t_rect)  # show total
 
-        """
-        self.display_cards()
-        self.display_indicator("Bust!", 70, s.WHITE, s.RED, 300, 150, user)
+            # draw cards
+            for j, symbol in enumerate(player.hand):
+                c_rect: pygame.Rect = pygame.Rect(
+                    (cards_start + 50 * j),
+                    (t_rect.bottom + 20 if bool(user) else t_rect.top - 220),
+                    120,
+                    200,
+                )
+                if symbol in ["J", "Q", "K", "A"]:
+                    index: int = 0
+                else:
+                    index = int(symbol)
+                self.surf.blit(self.card_faces[index], c_rect)
+
+                symbol_label = s.p_font(30).render(symbol, True, s.D2_GREEN)
+                self.surf.blit(
+                    symbol_label, (c_rect.left + 10, c_rect.top + 1)
+                )
+                self.surf.blit(
+                    symbol_label, (c_rect.left + 10, c_rect.bottom - 41)
+                )
+
+                pygame.draw.rect(self.surf, s.D1_GREEN, c_rect, 3, 4)
+
+            # draw other conditions (i.e. bust or blackjack)
+            if player.bust or player.blackjack:
+                if player.bust:
+                    text: str = "Bust!"
+                    colour: str = s.RED
+                    width: int = 170
+                elif player.blackjack:
+                    text = "Blackjack!"
+                    colour = s.L_GREEN
+                    width = 270
+                self.display_indicator(
+                    text,
+                    65,
+                    s.WHITE,
+                    colour,
+                    width,
+                    80,
+                    s.SCREEN_W / 2,
+                    c_rect.top + 100,
+                )
 
     # run game
     def run(self) -> None:
@@ -502,44 +664,11 @@ class Blackjack(Screen):
                 if self.show_results:
                     # show short card result before main result screen
                     current_ticks: int = pygame.time.get_ticks()
-                    if current_ticks <= self.ticks + 1000 and (
-                        self.game.bust or self.game.blackjack
-                    ):
-                        self.display_cards()
-                        # if a bust occurred
-                        if self.player.bust or self.opp.bust:
-                            user = self.player.bust
-                            f_size: int = 90 if self.player.bust else 50
-                            width: int = 300 if self.player.bust else 150
-                            height: int = 150 if self.player.bust else 70
-                            self.display_indicator(
-                                "Bust!",
-                                f_size,
-                                s.WHITE,
-                                s.RED,
-                                width,
-                                height,
-                                user,
-                            )
+                    if current_ticks <= self.ticks + 2000:
+                        self.display_card_result()
 
-                        # blackjack occurred
-                        else:
-                            user = self.player.blackjack
-                            f_size = 50 if self.player.blackjack else 30
-                            width = 300 if self.player.blackjack else 125
-                            height = 130 if self.player.blackjack else 70
-                            self.display_indicator(
-                                "Blackjack!",
-                                f_size,
-                                s.WHITE,
-                                s.L_GREEN,
-                                width,
-                                height,
-                                user,
-                            )
-
-                    # if both stood, go straight to results screen
-                    # otherwise, go after short result
+                    ## if both stood, go straight to results screen
+                    ## otherwise, go after short result
                     else:
                         self.run_display = False
                         self.network.send("finished")
@@ -548,11 +677,20 @@ class Blackjack(Screen):
                 elif self.game.ready:
                     self.display_cards()
                     self.display_buttons()
+                    self.display_menu()
+                    self.surf.blit(self.popup_text, self.popup_rect)
 
                     # indicate whether other player has stood
                     if not self.opp.active and self.player.active:
                         self.display_indicator(
-                            "Stood", 40, s.WHITE, s.L_GREEN, 150, 50, False
+                            "Stood",
+                            40,
+                            s.WHITE,
+                            s.L_GREEN,
+                            150,
+                            50,
+                            470,
+                            150,
                         )
 
                 # p1 waiting for another user, p2, to join
@@ -668,7 +806,7 @@ class Results(Screen):
             # next action buttons
             self.new_button.show(self.surf)
             if self.new_button.clicked:
-                Blackjack().run()
+                Gameplay().run()
 
             self.back_button.show(self.surf)
             if self.back_button.clicked:

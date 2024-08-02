@@ -2,9 +2,13 @@
 
 import random
 
+
 # player class to store user info
 class Player:
     """Create a player instance."""
+
+    ACE_MAX: int = 11
+    ACE_MIN: int = 1
 
     # initiator method
     def __init__(self) -> None:
@@ -23,19 +27,23 @@ class Player:
     # total up hand
     def total(self) -> None:
         """Total up the user's hand."""
+        # organise hand so Aces are after, to calculate A value
+        hand: list[str] = [c for c in self.hand if c != "A"]
+        hand += [a for a in self.hand if a == "A"]
         total: int = 0
-        for card in self.hand:
+
+        for card in hand:
             # user has face card (except ace) or 10
             if card in ["10", "J", "Q", "K"]:
                 total += 10
             # user has ace (automatically count current best choice)
             elif card == "A":
                 # ace == 1 if otherwise makes total >21
-                if (total + 10) > 21:
-                    total += 1
+                if (total + Player.ACE_MAX) > 21:
+                    total += Player.ACE_MIN
                 # ace == 11
                 else:
-                    total += 11
+                    total += Player.ACE_MAX
 
             # count number card
             else:
@@ -162,3 +170,4 @@ class Game:
         for i in range(2):
             self.deal_card(0)  # deal to player 1
             self.deal_card(1)  # deal to player 2
+        self.check_totals()
