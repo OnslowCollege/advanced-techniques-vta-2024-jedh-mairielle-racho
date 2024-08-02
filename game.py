@@ -27,8 +27,12 @@ class Player:
     # total up hand
     def total(self) -> None:
         """Total up the user's hand."""
+        # organise hand so Aces are after, to calculate A value
+        hand: list[str] = [c for c in self.hand if c != "A"]
+        hand += [a for a in self.hand if a == "A"]
         total: int = 0
-        for card in self.hand:
+
+        for card in hand:
             # user has face card (except ace) or 10
             if card in ["10", "J", "Q", "K"]:
                 total += 10
