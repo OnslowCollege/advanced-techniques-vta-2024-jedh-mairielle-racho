@@ -39,7 +39,7 @@ class Player:
             # user has ace (automatically count current best choice)
             elif card == "A":
                 # ace == 1 if otherwise makes total >21
-                if (total + 10) > 21:
+                if (total + Player.ACE_MAX) > 21:
                     total += Player.ACE_MIN
                 # ace == 11
                 else:
