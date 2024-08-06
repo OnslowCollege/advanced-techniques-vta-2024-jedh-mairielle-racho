@@ -64,6 +64,15 @@ class Button:
             center=(self.b_rect.centerx, self.b_rect.centery - 3)
         )
 
+        # button sounds
+        self.hover_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+            "assets/sound/735804__biornade__clicking-for-multiple-purposes.wav"
+        )
+        self.first_hover: bool = True  # to ensure sound played only once
+        self.click_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+            "assets/sound/735803__biornade__console-clicking-sound.wav"
+        )
+
     # show button
     def show(self, surf: pygame.Surface) -> None:
         """
@@ -80,12 +89,16 @@ class Button:
         # based on interactions, draw button
         # mouse not hovering on button
         if not self.b_rect.collidepoint(m_pos):
+            self.first_hover = True
             # show normal button
             pygame.draw.rect(surf, self.b_colour, self.b_rect, 0, 4)
             surf.blit(self.label, self.t_rect)
 
         # mouse hovering
         else:
+            if self.first_hover:
+                pygame.mixer.Sound.play(self.hover_sound)
+                self.first_hover = False
             # show hover button
             pygame.draw.rect(surf, self.b_h_colour, self.b_rect, 0, 4)
             surf.blit(self.h_label, self.t_rect)
@@ -95,7 +108,9 @@ class Button:
                 for events in pygame.event.get():
                     # user has clicked
                     if events.type == pygame.MOUSEBUTTONDOWN:
+                        pygame.mixer.Sound.play(self.click_sound)
                         clicked = True  # resets right after due to loop
+                        self.first_hover = False
 
                     if events.type == pygame.MOUSEBUTTONUP:
                         clicked = False
@@ -326,6 +341,7 @@ class Gameplay(Screen):
         Screen.__init__(self)
         self.show_results: bool = False  # when game is finished
         self.show_menu: bool = False  # show popup menu
+        self.play_sound: bool = True
 
         # set up the connected socket
         try:
@@ -335,6 +351,21 @@ class Gameplay(Screen):
             # initialise graphics
             self.initialise_texts()
             self.initialise_widgets()
+
+            # initialise deal cards sound
+            self.deal_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+                "assets/sound/682449__geoff-bremner-audio__card_deck_"
+                "flick_click.mp3"
+            )
+            self.win_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+                "assets/sound/721603__phoenix_the_maker__game-ui-low.wav"
+            )
+            self.lose_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+                "assets/sound/701703__stavsounds__ui-mistake.wav"
+            )
+            self.tie_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+                "assets/sound/701704__stavsounds__ui-submit.wav"
+            )
 
         except TypeError:
             self.run_display = False
@@ -525,6 +556,7 @@ class Gameplay(Screen):
         if self.player.turn:
             self.hit_button.show(self.surf)
             if self.hit_button.clicked:
+                pygame.mixer.Sound.play(self.deal_sound)
                 self.network.send("hit")
 
             self.stand_button.show(self.surf)
@@ -632,10 +664,12 @@ class Gameplay(Screen):
                     text: str = "Bust!"
                     colour: str = s.RED
                     width: int = 170
+
                 elif player.blackjack:
                     text = "Blackjack!"
                     colour = s.L_GREEN
                     width = 270
+
                 self.display_indicator(
                     text,
                     65,
@@ -646,6 +680,16 @@ class Gameplay(Screen):
                     s.SCREEN_W / 2,
                     c_rect.top + 100,
                 )
+
+        # play audio cue if player won or not
+        if self.play_sound:
+            if not self.player.win and not self.opp.win:
+                pygame.mixer.Sound.play(self.tie_sound)
+            elif self.player.win:
+                pygame.mixer.Sound.play(self.win_sound)
+            elif self.opp.win:
+                pygame.mixer.Sound.play(self.lose_sound)
+            self.play_sound = False
 
     # run game
     def run(self) -> None:
