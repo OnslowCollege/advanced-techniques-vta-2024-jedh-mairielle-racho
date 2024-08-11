@@ -357,13 +357,13 @@ class Gameplay(Screen):
                 "assets/sound/682449__geoff-bremner-audio__card_deck_"
                 "flick_click.mp3"
             )
-            self.win_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+            self.tie_sound: pygame.mixer.Sound = pygame.mixer.Sound(
                 "assets/sound/721603__phoenix_the_maker__game-ui-low.wav"
             )
             self.lose_sound: pygame.mixer.Sound = pygame.mixer.Sound(
                 "assets/sound/701703__stavsounds__ui-mistake.wav"
             )
-            self.tie_sound: pygame.mixer.Sound = pygame.mixer.Sound(
+            self.win_sound: pygame.mixer.Sound = pygame.mixer.Sound(
                 "assets/sound/701704__stavsounds__ui-submit.wav"
             )
 
@@ -398,6 +398,18 @@ class Gameplay(Screen):
             70,
             315,
             510,
+        )
+        self.connection_back_button: Button = Button(  # return to main menu
+            "Back to main menu",
+            30,
+            s.WHITE,
+            s.WHITE,
+            s.D2_GREEN,
+            s.RED,
+            280,
+            55,
+            165,
+            395,
         )
 
         # other player stands text
@@ -740,6 +752,12 @@ class Gameplay(Screen):
                 # p1 waiting for another user, p2, to join
                 else:
                     self.surf.blit(self.c_text, self.c_rect)
+                    # draw back button
+                    self.connection_back_button.show(self.surf)
+                    if self.connection_back_button.clicked:
+                        self.run_display = False
+                        self.network.send("finished")
+                        MainMenu().run()
 
             except:
                 if self.show_results:
