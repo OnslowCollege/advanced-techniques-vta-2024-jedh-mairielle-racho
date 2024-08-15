@@ -737,7 +737,6 @@ class Gameplay(Screen):
                 elif self.game.ready:
                     self.display_cards()
                     self.display_buttons()
-                    self.display_menu()
                     self.surf.blit(self.popup_text, self.popup_rect)
 
                     # indicate whether other player has stood
@@ -752,6 +751,7 @@ class Gameplay(Screen):
                             470,
                             150,
                         )
+                    self.display_menu()
 
                 # p1 waiting for another user, p2, to join
                 else:
