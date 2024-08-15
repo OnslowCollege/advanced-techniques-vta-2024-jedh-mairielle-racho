@@ -162,7 +162,7 @@ class Game:
 
         # create the deck
         self.deck: list[str] = (
-            [str(i) for i in range(1, 11)] + ["J", "Q", "K", "A"]
+            [str(i) for i in range(2, 11)] + ["J", "Q", "K", "A"]
         ) * 4
         random.shuffle(self.deck)  # shuffle deck
 

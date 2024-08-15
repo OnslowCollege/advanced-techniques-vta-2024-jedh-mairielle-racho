@@ -1,7 +1,7 @@
 How to set up:
 To play on the same network, users must:
 1. Go to 'settings.py' file
-2. Change in SERVER variable to the network ip (e.g. school network) with "" surrounding it
+2. Change SERVER variable to the network ip (e.g. school network) with "" surrounding it
 
 3. Select one computer to host the network, and run 'server.py' (ONLY 1 COMPUTER PER NETWORK)
 
