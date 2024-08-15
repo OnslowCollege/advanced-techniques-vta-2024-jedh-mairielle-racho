@@ -17,3 +17,7 @@ If correct specification IP to server has not been run, users will experience:
 - User will need to then follow the instructions above to resolve the issue.
 
 - If errors persist with connection, attempt to host server using a different computer.
+
+
+Special notes:
+Font 'MusticaPro' by Alifinart Studio (Portfolio link: behance.net/alifinart)
