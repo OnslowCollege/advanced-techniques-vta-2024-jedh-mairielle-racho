@@ -16,11 +16,12 @@ except socket.error as er_m:
     print(er_m)
 
 connection.listen(2)
-print("Server started! Connected blackjack now available!\n")
+print("Server started! Connected blackjack now available!")
 
 # store variables
 games: dict[int, Game] = {}  # allows multiple games at once
 id_count: int = 0  # how many users are playing
+game_id: int = 0
 
 
 # run multiple programs using threading
@@ -49,18 +50,13 @@ def threaded(connection, player_no: int, game_id: int) -> None:
                 game = games[game_id]
 
                 # check data received
-                if not data:
-                    break
-                else:
-                    if data == "reset":
-                        # reset game once finished
-                        game.reset()
-
-                    elif data == "hit":
+                if data:
+                    if data == "hit":
                         # player hits
                         game.hit(player_no)
 
                     elif data == "stand":
+                        # player stands
                         game.stand(player_no)
 
                     elif data == "next round":
@@ -68,7 +64,7 @@ def threaded(connection, player_no: int, game_id: int) -> None:
                         game.next_round()
 
                     elif data == "finished":
-                        print("Game finished")
+                        # close game
                         break
 
                     # send response to server socket
@@ -83,8 +79,8 @@ def threaded(connection, player_no: int, game_id: int) -> None:
 
     # delete game
     try:
+        print("Game", game_id, "closed")
         del games[game_id]
-        print("Closing game", game_id)
     except KeyError:  # when game has already been deleted
         pass
 
@@ -95,24 +91,25 @@ def threaded(connection, player_no: int, game_id: int) -> None:
 while True:
     # establish connection
     sock, address = connection.accept()
-    print("Connection to:", address)
+    print("\nConnection to:", address)
 
     id_count += 1
     print("ID count: ", id_count)
-    player = 0  # i.e. player 1
+    player_no: int = 0  # i.e. player 1
 
-    # create games for every 2 players
-    game_id = (id_count - 1) // 2
     # create a new game if user is player 1
     if id_count % 2 == 1:
+        game_id += 1
         games[game_id] = Game()
-        print(f"Creating a new game {game_id}...")
+        print(f"Creating new game {game_id}")
 
     # if user is player 2, send to a game
     else:
-        print(f"Connecting to game {game_id}...\n")
+        print(f"Connecting to game {game_id}\n")
         games[game_id].ready = True
-        player = 1  # i.e. player 2
+        player_no = 1  # i.e. player 2
+
+    print(games)
 
     # start a new thread
-    start_new_thread(threaded, (sock, player, game_id))
+    start_new_thread(threaded, (sock, player_no, game_id))

@@ -482,6 +482,10 @@ class Gameplay(Screen):
         for event in pygame.event.get():
             # if user quits program window
             if event.type == pygame.QUIT:
+                try:
+                    self.network.send("finished")
+                except EOFError:
+                    pass
                 pygame.quit()
                 sys.exit()
 
