@@ -16,7 +16,7 @@ class Player:
         # store player stats
         self.active: bool = True  # user has not stood
         self.turn: bool = True  # indicates whether it is player's turn
-        self.win: bool = False
+        self.win: bool = True
         self.bust: bool = False
         self.blackjack: bool = False
 
@@ -80,7 +80,7 @@ class Game:
             if player.hand_total > 21:
                 self.bust = True
                 player.bust = True
-                self.players[i - 1].win = True
+                player.win = False
                 self.inactive()
 
             # both users got 21, so tie
@@ -94,13 +94,17 @@ class Game:
             elif player.hand_total == Game.MAX:
                 self.blackjack = True
                 player.blackjack = True
-                player.win = True
+                self.players[i - 1].win = False
                 self.inactive()
 
             # both players stood before 21
             elif not any([p.active for p in self.players]):
                 if player.hand_total > self.players[i - 1].hand_total:
-                    player.win = True  # player with greater total wins
+                    self.players[
+                        i - 1
+                    ].win = False  # player with greater total wins
+                elif player.hand_total == self.players[i - 1].hand_total:
+                    player.win = False
 
     # disable turns
     def inactive(self) -> None:

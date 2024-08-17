@@ -8,7 +8,7 @@ To play on the same network, users must:
 
 3. Change SERVER variable of all users to the network ip address (e.g. school network) of the host computer with "" surrounding it.
 
-4. Run 'server.py' using the host computer selected in Step 2 (ONLY 1 COMPUTER PER NETWORK).
+4. Run 'server.py' using the host computer selected in Step 2 (ONLY 1 COMPUTER PER NETWORK). Terminal will print "Server started! Connected blackjack now available!"
 
 5. Run 'client.py' to play! Users should be able to play against each other now. This may require using the 'Run and Debug' VSCode function to run both the server and a client.
 

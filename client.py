@@ -770,6 +770,7 @@ class Gameplay(Screen):
                         self.opp.hand_total,
                         self.player.win,
                         self.opp.win,
+                        self.game.bust,
                     ).run()
 
                 else:
@@ -787,7 +788,12 @@ class Results(Screen):
 
     # initiator method
     def __init__(
-        self, user_total: int, opp_total: int, user_win: bool, opp_win: bool
+        self,
+        user_total: int,
+        opp_total: int,
+        user_win: bool,
+        opp_win: bool,
+        bust: bool,
     ) -> None:
         """
         Initialise results screen.
@@ -798,6 +804,7 @@ class Results(Screen):
             opp_total: the card total of the opponent user
             user_win: whether the user won
             opp_win: whether the opponent won
+            bust: if a player busts
 
         """
         Screen.__init__(self)
@@ -838,13 +845,16 @@ class Results(Screen):
 
         # overall result
         if user_win:  # user wins
-            result: str = "won"
+            result: str = "You won"
         elif opp_win:  # opponent wins
-            result = "lost"
+            result = "You lost"
         else:  # tie
-            result = "tie"
+            if bust:
+                result = "Both bust"
+            else:
+                result = "You tie"
         self.win_result: pygame.Surface = s.p_font(70).render(
-            f"You {result}!", True, s.RED
+            f"{result}!", True, s.RED
         )
 
         # get rects for each text
